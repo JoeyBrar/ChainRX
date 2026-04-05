@@ -2,20 +2,18 @@
 
 cl import from react { useRef, useEffect }
 
-def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) -> any {
+def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list, is_dark: bool = True) -> any {
     canvas_ref = useRef(None);
 
     if len(interactions) == 0 {
         return <div style={{
-            "backgroundColor": "#ffffff",
             "borderRadius": "20px",
             "padding": "20px 24px",
-            "marginBottom": "16px",
-            "boxShadow": "0 1px 3px rgba(0,0,0,0.04)"
+            "marginBottom": "16px"
         }}>
-            <div style={{"fontSize": "15px", "fontWeight": "600", "color": "#1d1d1f", "marginBottom": "12px"}}>{"Interaction Graph"}</div>
-            <div style={{"textAlign": "center", "padding": "40px 20px", "backgroundColor": "#f5f5f7", "borderRadius": "14px"}}>
-                <div style={{"fontSize": "17px", "fontWeight": "600", "color": "#1d1d1f"}}>{"No known interactions"}</div>
+            <div style={{"fontSize": "15px", "fontWeight": "600", "color": "#f5f5f7" if is_dark else "#1d1d1f", "marginBottom": "12px"}}>{"Interaction Graph"}</div>
+            <div style={{"textAlign": "center", "padding": "40px 20px", "backgroundColor": "#2c2c2e" if is_dark else "#f5f5f7", "borderRadius": "14px"}}>
+                <div style={{"fontSize": "17px", "fontWeight": "600", "color": "#f5f5f7" if is_dark else "#1d1d1f"}}>{"No known interactions"}</div>
                 <div style={{"fontSize": "14px", "color": "#86868b", "marginTop": "4px"}}>{"These medications have no documented pairwise interactions in our database."}</div>
             </div>
         </div>;
@@ -36,6 +34,20 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
         count = len(medications);
         cx = w / 2;
         cy = h / 2;
+
+        # Theme
+        node_fill = "#2c2c2e" if is_dark else "#ffffff";
+        node_fill_hv = "#3a3a3c" if is_dark else "#f0f0f5";
+        node_flag_fill = "#3a1a1a" if is_dark else "#fff5f5";
+        node_flag_fill_hv = "#4a2020" if is_dark else "#ffecec";
+        node_stroke = "rgba(255,255,255,0.15)" if is_dark else "rgba(0,0,0,0.1)";
+        label_color = "#f5f5f7" if is_dark else "#1d1d1f";
+        label_dim = "#86868b";
+        label_bg = "rgba(44,44,46,0.9)" if is_dark else "rgba(245,245,247,0.9)";
+        tooltip_bg = "rgba(245,245,247,0.95)" if is_dark else "rgba(29,29,31,0.92)";
+        tooltip_text = "#1d1d1f" if is_dark else "#ffffff";
+        edge_label_bg = "rgba(44,44,46,0.92)" if is_dark else "rgba(255,255,255,0.92)";
+        edge_normal = "rgba(255,255,255," if is_dark else "rgba(0,0,0,";
 
         # Build data structures
         node_map = {};
@@ -252,7 +264,7 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
                     ctx.lineWidth = 2.5 if hl else 1.8;
                     ctx.setLineDash([]);
                 } else {
-                    ctx.strokeStyle = "rgba(0,0,0," + ("0.5" if hl else "0.12") + ")";
+                    ctx.strokeStyle = edge_normal + ("0.5" if hl else "0.12") + ")";
                     ctx.lineWidth = 1.5 if hl else 0.8;
                     ctx.setLineDash([4, 4]);
                 }
@@ -264,9 +276,9 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
                     label = e["type"].replace("_", " ");
                     ctx.font = "500 10px -apple-system, sans-serif";
                     tw = ctx.measureText(label).width;
-                    ctx.fillStyle = "rgba(255,255,255,0.92)";
+                    ctx.fillStyle = edge_label_bg;
                     ctx.fillRect(cpx - tw / 2 - 6, cpy - 9, tw + 12, 18);
-                    ctx.fillStyle = "#ff3b30" if e["fl"] else "#555";
+                    ctx.fillStyle = "#ff3b30" if e["fl"] else label_dim;
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
                     ctx.fillText(label, cpx, cpy);
@@ -295,22 +307,22 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
                 # Shadow
                 ctx.beginPath();
                 ctx.arc(nx, ny + 1, r, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(0,0,0,0.04)";
+                ctx.fillStyle = "rgba(0,0,0,0.2)" if is_dark else "rgba(0,0,0,0.06)";
                 ctx.fill();
 
                 # Circle fill + stroke
                 ctx.beginPath();
                 ctx.arc(nx, ny, r, 0, Math.PI * 2);
                 if flagged {
-                    ctx.fillStyle = "#ffecec" if hv else "#fff5f5";
+                    ctx.fillStyle = node_flag_fill_hv if hv else node_flag_fill;
                     ctx.fill();
                     ctx.strokeStyle = "#ff3b30";
                     ctx.lineWidth = 2;
                     ctx.stroke();
                 } else {
-                    ctx.fillStyle = "#f0f0f5" if hv else "#ffffff";
+                    ctx.fillStyle = node_fill_hv if hv else node_fill;
                     ctx.fill();
-                    ctx.strokeStyle = "#007aff" if hv else "rgba(0,0,0,0.1)";
+                    ctx.strokeStyle = "#007aff" if hv else node_stroke;
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
                 }
@@ -318,19 +330,19 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
                 # Abbreviation inside circle
                 abbr = medications[ni2].substring(0, 3).toUpperCase();
                 ctx.font = "600 10px -apple-system, sans-serif";
-                ctx.fillStyle = "#ff3b30" if flagged else "#1d1d1f";
+                ctx.fillStyle = "#ff3b30" if flagged else label_color;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(abbr, nx, ny);
 
-                # Full name label below — plain rect, no fancy drawing
+                # Full name label below
                 name = medications[ni2];
                 ctx.font = hv and "500 10px -apple-system, sans-serif" or "10px -apple-system, sans-serif";
                 tw = ctx.measureText(name).width;
                 ly = ny + r + 13;
-                ctx.fillStyle = "rgba(245,245,247,0.9)";
+                ctx.fillStyle = label_bg;
                 ctx.fillRect(nx - tw / 2 - 4, ly - 7, tw + 8, 14);
-                ctx.fillStyle = (hv or flagged) and "#1d1d1f" or "#86868b";
+                ctx.fillStyle = (hv or flagged) and label_color or label_dim;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(name, nx, ly);
@@ -371,9 +383,9 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
                 ttx = Math.max(4, Math.min(hn["x"] - tw2 / 2 - 10, w - tw2 - 24));
                 tty = hn["y"] - 48;
                 if tty < 4 { tty = hn["y"] + 40; }
-                ctx.fillStyle = "rgba(29,29,31,0.92)";
+                ctx.fillStyle = tooltip_bg;
                 ctx.fillRect(ttx, tty, tw2 + 20, 28);
-                ctx.fillStyle = "#fff";
+                ctx.fillStyle = tooltip_text;
                 ctx.textAlign = "left";
                 ctx.textBaseline = "middle";
                 ctx.fillText(tip, ttx + 10, tty + 14);
@@ -426,29 +438,27 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
             canvas.removeEventListener("mouseup", mup);
             canvas.removeEventListener("mouseleave", mleave);
         };
-    }, [medications, interactions, flagged_paths]);
+    }, [medications, interactions, flagged_paths, is_dark]);
 
     return <div style={{
-        "backgroundColor": "#ffffff",
         "borderRadius": "20px",
         "padding": "20px 24px",
-        "marginBottom": "16px",
-        "boxShadow": "0 1px 3px rgba(0,0,0,0.04)"
+        "marginBottom": "16px"
     }}>
         <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px"}}>
-            <div style={{"fontSize": "15px", "fontWeight": "600", "color": "#1d1d1f"}}>{"Interaction Graph"}</div>
-            <div style={{"display": "flex", "gap": "12px", "fontSize": "11px", "color": "#86868b", "alignItems": "center"}}>
+            <div style={{"fontSize": "15px", "fontWeight": "600", "color": "#f5f5f7" if is_dark else "#1d1d1f"}}>{"Interaction Graph"}</div>
+            <div style={{"display": "flex", "gap": "12px", "fontSize": "11px", "color": "rgba(128,128,128,0.7)", "alignItems": "center"}}>
                 <span style={{"display": "flex", "alignItems": "center", "gap": "4px"}}>
                     <span style={{"display": "inline-block", "width": "10px", "height": "2px", "backgroundColor": "#ff3b30", "borderRadius": "1px"}}></span>
                     {"flagged"}
                 </span>
                 <span style={{"display": "flex", "alignItems": "center", "gap": "4px"}}>
-                    <span style={{"display": "inline-block", "width": "10px", "height": "1px", "backgroundColor": "#aeaeb2"}}></span>
+                    <span style={{"display": "inline-block", "width": "10px", "height": "1px", "backgroundColor": "rgba(128,128,128,0.5)"}}></span>
                     {"interaction"}
                 </span>
-                <span style={{"color": "#c7c7cc"}}>{"drag to move"}</span>
+                <span style={{"color": "rgba(128,128,128,0.4)"}}>{"drag to move"}</span>
             </div>
         </div>
-        <canvas ref={canvas_ref} style={{"width": "100%", "height": "480px", "borderRadius": "14px", "backgroundColor": "#f5f5f7"}} />
+        <canvas ref={canvas_ref} style={{"width": "100%", "height": "480px", "borderRadius": "14px", "backgroundColor": "#2c2c2e" if is_dark else "#f5f5f7"}} />
     </div>;
 }

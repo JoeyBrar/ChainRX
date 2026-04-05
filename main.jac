@@ -228,7 +228,7 @@ cl {
         if not msg { return <span></span>; }
         return <div style={{
             "padding": "12px 16px",
-            "backgroundColor": "#fff5f5",
+            "backgroundColor": "rgba(255,59,48,0.1)",
             "borderRadius": "12px",
             "color": "#ff3b30",
             "marginBottom": "12px",
@@ -237,87 +237,38 @@ cl {
         }}>{msg}</div>;
     }
 
-    def ResultsSection(results: any, on_copy: any) -> any {
+    def ResultsSection(results: any, on_copy: any, theme: any) -> any {
         if results["empty"] { return <span></span>; }
         total = results["total_flags"];
         chains = results["flagged_chains"];
         is_elderly = results["is_elderly"];
 
         return <div>
-            <div style={{
-                "display": "flex",
-                "justifyContent": "space-between",
-                "alignItems": "center",
-                "marginBottom": "12px"
-            }}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px"}}>
                 <div style={{"display": "flex", "alignItems": "center", "gap": "8px"}}>
-                    <h2 style={{
-                        "fontSize": "20px",
-                        "fontWeight": "700",
-                        "color": "#1d1d1f",
-                        "margin": "0",
-                        "letterSpacing": "-0.02em"
-                    }}>{"Flagged Chains"}</h2>
-                    {<span style={{
-                        "backgroundColor": "#fff3cd",
-                        "color": "#856404",
-                        "padding": "2px 8px",
-                        "borderRadius": "6px",
-                        "fontSize": "11px",
-                        "fontWeight": "600"
-                    }}>{"65+"}</span> if is_elderly else <span></span>}
+                    <h2 style={{"fontSize": "20px", "fontWeight": "700", "color": theme["t1"], "margin": "0", "letterSpacing": "-0.02em"}}>{"Flagged Chains"}</h2>
+                    {<span style={{"backgroundColor": "rgba(255,149,0,0.15)", "color": "#ff9500", "padding": "2px 8px", "borderRadius": "6px", "fontSize": "11px", "fontWeight": "600"}}>{"65+"}</span> if is_elderly else <span></span>}
                 </div>
                 <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                    <span style={{
-                        "fontSize": "13px",
-                        "color": "#86868b",
-                        "fontWeight": "500"
-                    }}>{str(total) + " found"}</span>
-                    {<button
-                        onClick={on_copy}
-                        style={{
-                            "padding": "6px 12px",
-                            "backgroundColor": "rgba(0,0,0,0.04)",
-                            "border": "none",
-                            "borderRadius": "8px",
-                            "fontSize": "13px",
-                            "fontWeight": "500",
-                            "cursor": "pointer",
-                            "color": "#1d1d1f"
-                        }}
-                    >{"Copy"}</button> if total > 0 else <span></span>}
+                    <span style={{"fontSize": "13px", "color": theme["t2"], "fontWeight": "500"}}>{str(total) + " found"}</span>
+                    {<button onClick={on_copy} style={{"padding": "6px 12px", "backgroundColor": theme["c2"], "border": "none", "borderRadius": "8px", "fontSize": "13px", "fontWeight": "500", "cursor": "pointer", "color": theme["t1"]}}>{"Copy"}</button> if total > 0 else <span></span>}
                 </div>
             </div>
-            {<div style={{
-                "textAlign": "center",
-                "padding": "48px 20px",
-                "borderRadius": "16px",
-                "backgroundColor": "#f5f5f7"
-            }}>
+            {<div style={{"textAlign": "center", "padding": "48px 20px", "borderRadius": "16px", "backgroundColor": theme["c1"]}}>
                 <div style={{"fontSize": "32px", "marginBottom": "8px", "color": "#34c759"}}>{"+"}</div>
-                <div style={{"color": "#1d1d1f", "fontSize": "17px", "fontWeight": "600", "letterSpacing": "-0.01em"}}>{"All Clear"}</div>
-                <div style={{"color": "#86868b", "fontSize": "14px", "marginTop": "4px"}}>{"No dangerous interaction chains detected."}</div>
+                <div style={{"color": theme["t1"], "fontSize": "17px", "fontWeight": "600"}}>{"All Clear"}</div>
+                <div style={{"color": theme["t2"], "fontSize": "14px", "marginTop": "4px"}}>{"No dangerous interaction chains detected."}</div>
             </div> if total == 0 else <div>
                 {[<ResultCard key={str(idx)} chain={chains[idx]} /> for idx in range(len(chains))]}
             </div>}
         </div>;
     }
 
-    def RegimensBar(regimens: list, on_select: any) -> any {
+    def RegimensBar(regimens: list, on_select: any, theme: any) -> any {
         if len(regimens) == 0 { return <span></span>; }
         return <div style={{"marginBottom": "20px"}}>
-            <div style={{
-                "fontSize": "12px",
-                "fontWeight": "600",
-                "color": "#86868b",
-                "marginBottom": "8px",
-                "letterSpacing": "0.02em"
-            }}>{"PRESETS"}</div>
-            <div style={{
-                "display": "flex",
-                "flexWrap": "wrap",
-                "gap": "6px"
-            }}>
+            <div style={{"fontSize": "12px", "fontWeight": "600", "color": theme["t2"], "marginBottom": "8px", "letterSpacing": "0.02em"}}>{"PRESETS"}</div>
+            <div style={{"display": "flex", "flexWrap": "wrap", "gap": "6px"}}>
                 {[
                     <button
                         key={regimens[idx]["name"]}
@@ -325,16 +276,15 @@ cl {
                         data-idx={str(idx)}
                         style={{
                             "padding": "6px 14px",
-                            "backgroundColor": "rgba(0,0,0,0.03)",
+                            "backgroundColor": theme["c2"],
                             "border": "none",
                             "borderRadius": "20px",
                             "fontSize": "13px",
                             "fontWeight": "500",
                             "cursor": "pointer",
-                            "color": "#1d1d1f",
+                            "color": theme["t1"],
                             "transition": "background-color 0.15s",
-                            "whiteSpace": "nowrap",
-                            "letterSpacing": "-0.01em"
+                            "whiteSpace": "nowrap"
                         }}
                     >{regimens[idx]["name"]}</button>
                     for idx in range(len(regimens))
@@ -350,6 +300,7 @@ cl {
         has all_drugs: list = [];
         has error_msg: str = "";
         has is_elderly: bool = False;
+        has dark: bool = True;
         has regimens: list = [];
         has copied: bool = False;
         has interactions: list = [];
@@ -385,6 +336,34 @@ cl {
                 data = await resp2.json();
                 if data["ok"] {
                     all_drugs = data["data"]["result"];
+                } else {
+                    # Token might be stale — re-register
+                    localStorage.removeItem("jac_token");
+                    resp_retry = await fetch("/user/register", {
+                        "method": "POST",
+                        "headers": {"Content-Type": "application/json"},
+                        "body": JSON.stringify({
+                            "username": "user_" + str(int(Math.random() * 999999)),
+                            "password": "chainrx2026"
+                        })
+                    });
+                    retry_data = await resp_retry.json();
+                    if retry_data["ok"] {
+                        token = retry_data["data"]["token"];
+                        localStorage.setItem("jac_token", token);
+                        resp2b = await fetch("/function/get_all_drugs", {
+                            "method": "POST",
+                            "headers": {
+                                "Content-Type": "application/json",
+                                "Authorization": "Bearer " + str(token)
+                            },
+                            "body": JSON.stringify({})
+                        });
+                        data2 = await resp2b.json();
+                        if data2["ok"] {
+                            all_drugs = data2["data"]["result"];
+                        }
+                    }
                 }
                 resp3 = await fetch("/function/get_regimens", {
                     "method": "POST",
@@ -535,328 +514,277 @@ cl {
         has_results = not results["empty"];
         has_flags = results["total_flags"] > 0;
 
-        # Kill body margin/padding
         document.body.style.margin = "0";
         document.body.style.padding = "0";
         document.documentElement.style.margin = "0";
         document.documentElement.style.padding = "0";
 
+        # Theme colors
+        bg = "#0a0a1a" if dark else "#ffffff";
+        card_bg = "#1c1c1e" if dark else "#f5f5f7";
+        card_bg2 = "#2c2c2e" if dark else "#e5e5ea";
+        text1 = "#f5f5f7" if dark else "#1d1d1f";
+        text2 = "#86868b";
+        text3 = "#48484a" if dark else "#aeaeb2";
+        border = "rgba(255,255,255,0.06)" if dark else "rgba(0,0,0,0.06)";
+        input_bg = "#2c2c2e" if dark else "#ffffff";
+        input_border = "rgba(255,255,255,0.1)" if dark else "rgba(0,0,0,0.08)";
+        accent = "#007aff";
+        disabled_bg = "#3a3a3c" if dark else "#d2d2d7";
+        toggle_bg = "rgba(255,255,255,0.06)" if dark else "rgba(0,0,0,0.03)";
+
         return <div style={{
             "minHeight": "100vh",
-            "backgroundColor": "#f5f5f7",
+            "backgroundColor": bg,
             "fontFamily": "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            "color": "#1d1d1f",
+            "color": text1,
             "WebkitFontSmoothing": "antialiased",
             "display": "flex",
             "flexDirection": "column"
         }}>
             <div style={{
-                "background": "linear-gradient(180deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)",
-                "padding": "40px 24px 80px",
-                "textAlign": "center",
-                "position": "relative",
-                "overflow": "hidden"
+                "maxWidth": "680px",
+                "width": "100%",
+                "margin": "0 auto",
+                "padding": "0 24px",
+                "boxSizing": "border-box",
+                "flex": "1"
             }}>
                 <div style={{
-                    "position": "absolute",
-                    "top": "-120px",
-                    "left": "50%",
-                    "transform": "translateX(-50%)",
-                    "width": "600px",
-                    "height": "600px",
-                    "borderRadius": "50%",
-                    "background": "radial-gradient(circle, rgba(0,122,255,0.15) 0%, rgba(0,122,255,0) 70%)",
-                    "pointerEvents": "none"
-                }}></div>
-                <div style={{
-                    "position": "absolute",
-                    "top": "20px",
-                    "right": "10%",
-                    "width": "200px",
-                    "height": "200px",
-                    "borderRadius": "50%",
-                    "background": "radial-gradient(circle, rgba(94,92,230,0.12) 0%, transparent 70%)",
-                    "pointerEvents": "none"
-                }}></div>
-                <div style={{
-                    "position": "absolute",
-                    "bottom": "0",
-                    "left": "5%",
-                    "width": "300px",
-                    "height": "300px",
-                    "borderRadius": "50%",
-                    "background": "radial-gradient(circle, rgba(48,209,88,0.08) 0%, transparent 70%)",
-                    "pointerEvents": "none"
-                }}></div>
+                    "display": "flex",
+                    "justifyContent": "space-between",
+                    "alignItems": "center",
+                    "padding": "16px 0"
+                }}>
+                    <span style={{"fontSize": "15px", "fontWeight": "600", "color": text1, "letterSpacing": "-0.01em"}}>{"ChainRX"}</span>
+                    <button
+                        onClick={lambda { dark = not dark; }}
+                        style={{
+                            "background": toggle_bg,
+                            "border": "none",
+                            "borderRadius": "50%",
+                            "width": "36px",
+                            "height": "36px",
+                            "display": "flex",
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                            "fontSize": "18px",
+                            "color": text1,
+                            "cursor": "pointer",
+                            "transition": "background-color 0.2s"
+                        }}
+                    >{(String.fromCharCode(9788) if dark else String.fromCharCode(9790))}</button>
+                </div>
 
                 <div style={{
-                    "position": "relative",
-                    "zIndex": "1"
+                    "textAlign": "center",
+                    "padding": "40px 0 48px"
                 }}>
                     <div style={{
                         "display": "inline-flex",
                         "alignItems": "center",
                         "gap": "8px",
-                        "backgroundColor": "rgba(255,255,255,0.08)",
-                        "padding": "6px 14px",
+                        "backgroundColor": toggle_bg,
+                        "padding": "5px 12px",
                         "borderRadius": "20px",
-                        "marginBottom": "16px",
-                        "backdropFilter": "blur(10px)"
+                        "marginBottom": "16px"
                     }}>
-                        <span style={{
-                            "width": "6px",
-                            "height": "6px",
-                            "borderRadius": "50%",
-                            "backgroundColor": "#30d158"
-                        }}></span>
-                        <span style={{
-                            "fontSize": "12px",
-                            "color": "rgba(255,255,255,0.7)",
-                            "fontWeight": "500",
-                            "letterSpacing": "0.02em"
-                        }}>{"JACHACKS 2026"}</span>
+                        <span style={{"width": "5px", "height": "5px", "borderRadius": "50%", "backgroundColor": "#30d158"}}></span>
+                        <span style={{"fontSize": "11px", "color": text2, "fontWeight": "500", "letterSpacing": "0.04em"}}>{"JACHACKS 2026"}</span>
                     </div>
                     <h1 style={{
                         "fontSize": "48px",
                         "fontWeight": "700",
-                        "background": "linear-gradient(135deg, #ffffff 0%, #a8c0ff 50%, #ffffff 100%)",
-                        "WebkitBackgroundClip": "text",
-                        "WebkitTextFillColor": "transparent",
+                        "color": text1,
                         "letterSpacing": "-0.04em",
                         "margin": "0 0 10px"
                     }}>{"ChainRX"}</h1>
                     <p style={{
-                        "fontSize": "18px",
-                        "color": "rgba(255,255,255,0.5)",
-                        "maxWidth": "440px",
+                        "fontSize": "17px",
+                        "color": text2,
+                        "maxWidth": "420px",
                         "margin": "0 auto",
-                        "lineHeight": "1.45",
-                        "fontWeight": "400",
+                        "lineHeight": "1.5",
                         "letterSpacing": "-0.01em"
                     }}>{"Detect compounding drug interaction chains that pairwise checkers miss."}</p>
                 </div>
-            </div>
 
-            <div style={{
-                "maxWidth": "680px",
-                "margin": "-48px auto 0",
-                "padding": "0 24px 48px",
-                "position": "relative",
-                "zIndex": "2",
-                "flex": "1"
-            }}>
-                    <div style={{
-                        "backgroundColor": "#ffffff",
-                        "borderRadius": "20px",
-                        "padding": "24px",
-                        "marginBottom": "16px",
-                        "boxShadow": "0 4px 24px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)"
-                    }}>
-                        <RegimensBar regimens={regimens} on_select={select_regimen} />
-
-                        <div style={{
-                            "fontSize": "12px",
-                            "fontWeight": "600",
-                            "color": "#86868b",
-                            "marginBottom": "8px",
-                            "letterSpacing": "0.02em"
-                        }}>{"MEDICATIONS"}</div>
-                        <DrugSelector
-                            drugs={all_drugs}
-                            selected={selected_drugs}
-                            onToggle={toggle_drug}
-                        />
-
-                        <div style={{
-                            "display": "flex",
-                            "alignItems": "center",
-                            "justifyContent": "space-between",
-                            "marginTop": "16px",
-                            "padding": "10px 14px",
-                            "backgroundColor": "#f5f5f7",
-                            "borderRadius": "12px"
-                        }}>
-                            <label style={{
-                                "fontSize": "15px",
-                                "fontWeight": "500",
-                                "color": "#1d1d1f",
-                                "display": "flex",
-                                "alignItems": "center",
-                                "gap": "8px",
-                                "cursor": "pointer"
-                            }}>
-                                <input
-                                    type="checkbox"
-                                    checked={is_elderly}
-                                    onChange={lambda e {
-                                        is_elderly = e.target.checked;
-                                        results = {"flagged_chains": [], "total_flags": 0, "is_elderly": False, "empty": True};
-                                    }}
-                                    style={{
-                                        "width": "18px",
-                                        "height": "18px",
-                                        "accentColor": "#007aff",
-                                        "cursor": "pointer"
-                                    }}
-                                />
-                                {"Patient is 65+"}
-                            </label>
-                            <span style={{
-                                "fontSize": "13px",
-                                "color": "#86868b"
-                            }}>{"1.3x risk adjustment"}</span>
-                        </div>
-
-                        <button
-                            onClick={analyze}
-                            disabled={not can_analyze}
-                            style={{
-                                "width": "100%",
-                                "marginTop": "16px",
-                                "padding": "14px",
-                                "backgroundColor": "#007aff" if can_analyze else "#d2d2d7",
-                                "color": "#ffffff",
-                                "border": "none",
-                                "borderRadius": "12px",
-                                "fontSize": "16px",
-                                "fontWeight": "600",
-                                "cursor": btn_cursor,
-                                "transition": "background-color 0.2s",
-                                "letterSpacing": "-0.01em"
-                            }}
-                        >{btn_text}</button>
-                    </div>
-
-                    {<div style={{
-                        "textAlign": "center",
-                        "padding": "8px",
-                        "color": "#34c759",
-                        "fontSize": "14px",
-                        "fontWeight": "500"
-                    }}>{"Copied to clipboard"}</div> if copied else <span></span>}
-
-                    <ErrorBanner msg={error_msg} />
-
-                    {<DrugGraph
-                        medications={selected_drugs}
-                        interactions={interactions}
-                        flagged_paths={flagged}
-                    /> if has_results else <span></span>}
-
-                    {<div style={{
-                        "backgroundColor": "#ffffff",
-                        "borderRadius": "18px",
-                        "padding": "20px 24px",
-                        "marginBottom": "16px",
-                        "boxShadow": "0 1px 3px rgba(0,0,0,0.04)"
-                    }}>
-                        <div style={{
-                            "display": "flex",
-                            "justifyContent": "space-between",
-                            "alignItems": "center",
-                            "marginBottom": "12px"
-                        }}>
-                            <div style={{
-                                "fontSize": "15px",
-                                "fontWeight": "600",
-                                "color": "#1d1d1f",
-                                "letterSpacing": "-0.01em"
-                            }}>{"AI Summary"}</div>
-                            <span style={{
-                                "fontSize": "11px",
-                                "color": "#86868b",
-                                "fontWeight": "500"
-                            }}>{"Claude Haiku 4.5"}</span>
-                        </div>
-                        {<div style={{
-                            "fontSize": "15px",
-                            "color": "#424245",
-                            "lineHeight": "1.6",
-                            "padding": "16px",
-                            "backgroundColor": "#f5f5f7",
-                            "borderRadius": "12px",
-                            "letterSpacing": "-0.01em"
-                        }}>{summary}</div> if summary else <button
-                            onClick={get_summary}
-                            disabled={summary_loading}
-                            style={{
-                                "width": "100%",
-                                "padding": "14px",
-                                "backgroundColor": "#f5f5f7",
-                                "border": "none",
-                                "borderRadius": "12px",
-                                "fontSize": "15px",
-                                "fontWeight": "500",
-                                "cursor": "pointer" if not summary_loading else "wait",
-                                "color": "#007aff" if not summary_loading else "#86868b",
-                                "transition": "background-color 0.15s"
-                            }}
-                        >{("Generating..." if summary_loading else "Generate Plain-English Summary")}</button>}
-                    </div> if has_flags else <span></span>}
-
-                    <ResultsSection results={results} on_copy={copy_results} />
-
-                    {<div style={{
-                        "display": "flex",
-                        "justifyContent": "center",
-                        "gap": "1px",
-                        "margin": "24px 0 16px",
-                        "backgroundColor": "rgba(0,0,0,0.04)",
-                        "borderRadius": "16px",
-                        "overflow": "hidden"
-                    }}>
-                        <div style={{
-                            "flex": "1",
-                            "backgroundColor": "#ffffff",
-                            "padding": "20px 16px",
-                            "textAlign": "center"
-                        }}>
-                            <div style={{"fontSize": "28px", "fontWeight": "700", "color": "#1d1d1f", "letterSpacing": "-0.02em"}}>{str(len(selected_drugs))}</div>
-                            <div style={{"fontSize": "12px", "color": "#86868b", "fontWeight": "500", "marginTop": "2px"}}>{"Medications"}</div>
-                        </div>
-                        <div style={{
-                            "flex": "1",
-                            "backgroundColor": "#ffffff",
-                            "padding": "20px 16px",
-                            "textAlign": "center"
-                        }}>
-                            <div style={{"fontSize": "28px", "fontWeight": "700", "color": "#ff3b30" if has_flags else "#34c759", "letterSpacing": "-0.02em"}}>{str(results["total_flags"])}</div>
-                            <div style={{"fontSize": "12px", "color": "#86868b", "fontWeight": "500", "marginTop": "2px"}}>{"Chains Flagged"}</div>
-                        </div>
-                        <div style={{
-                            "flex": "1",
-                            "backgroundColor": "#ffffff",
-                            "padding": "20px 16px",
-                            "textAlign": "center"
-                        }}>
-                            <div style={{"fontSize": "28px", "fontWeight": "700", "color": "#1d1d1f", "letterSpacing": "-0.02em"}}>{str(len(interactions))}</div>
-                            <div style={{"fontSize": "12px", "color": "#86868b", "fontWeight": "500", "marginTop": "2px"}}>{"Interactions"}</div>
-                        </div>
-                    </div> if has_results else <span></span>}
-
-            </div>
-
-            <div style={{
-                "backgroundColor": "#1d1d1f",
-                "padding": "40px 24px",
-                "marginTop": "24px"
-            }}>
                 <div style={{
-                    "maxWidth": "680px",
-                    "margin": "0 auto",
-                    "display": "flex",
-                    "justifyContent": "space-between",
-                    "alignItems": "center",
-                    "flexWrap": "wrap",
-                    "gap": "16px"
+                    "backgroundColor": card_bg,
+                    "borderRadius": "20px",
+                    "padding": "24px",
+                    "marginBottom": "16px"
                 }}>
-                    <div>
-                        <div style={{"fontSize": "15px", "fontWeight": "600", "color": "#f5f5f7", "letterSpacing": "-0.01em"}}>{"ChainRX"}</div>
-                        <div style={{"fontSize": "12px", "color": "#86868b", "marginTop": "4px"}}>{"Pure graph traversal. Zero LLM calls for detection."}</div>
+                    <RegimensBar regimens={regimens} on_select={select_regimen} theme={{"t1": text1, "t2": text2, "c2": card_bg2}} />
+
+                    <div style={{"fontSize": "12px", "fontWeight": "600", "color": text2, "marginBottom": "8px", "letterSpacing": "0.02em"}}>{"MEDICATIONS"}</div>
+                    <DrugSelector
+                        drugs={all_drugs}
+                        selected={selected_drugs}
+                        onToggle={toggle_drug}
+                        card_bg={card_bg}
+                    />
+
+                    <div style={{
+                        "display": "flex",
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "marginTop": "16px",
+                        "padding": "10px 14px",
+                        "backgroundColor": card_bg2,
+                        "borderRadius": "12px"
+                    }}>
+                        <label style={{
+                            "fontSize": "15px",
+                            "fontWeight": "500",
+                            "color": text1,
+                            "display": "flex",
+                            "alignItems": "center",
+                            "gap": "8px",
+                            "cursor": "pointer"
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={is_elderly}
+                                onChange={lambda e {
+                                    is_elderly = e.target.checked;
+                                    results = {"flagged_chains": [], "total_flags": 0, "is_elderly": False, "empty": True};
+                                }}
+                                style={{"width": "18px", "height": "18px", "accentColor": accent, "cursor": "pointer"}}
+                            />
+                            {"Patient is 65+"}
+                        </label>
+                        <span style={{"fontSize": "13px", "color": text2}}>{"1.3x risk adjustment"}</span>
                     </div>
-                    <div style={{"textAlign": "right"}}>
-                        <div style={{"fontSize": "12px", "color": "#86868b"}}>{"JacHacks 2026"}</div>
-                        <div style={{"fontSize": "11px", "color": "#48484a", "marginTop": "4px"}}>{"For educational purposes only."}</div>
+
+                    <button
+                        onClick={analyze}
+                        disabled={not can_analyze}
+                        style={{
+                            "width": "100%",
+                            "marginTop": "16px",
+                            "padding": "14px",
+                            "backgroundColor": accent if can_analyze else disabled_bg,
+                            "color": "#ffffff" if can_analyze else text3,
+                            "border": "none",
+                            "borderRadius": "12px",
+                            "fontSize": "16px",
+                            "fontWeight": "600",
+                            "cursor": btn_cursor,
+                            "transition": "background-color 0.2s",
+                            "letterSpacing": "-0.01em"
+                        }}
+                    >{btn_text}</button>
+                </div>
+
+                {<div style={{"textAlign": "center", "padding": "8px", "color": "#34c759", "fontSize": "14px", "fontWeight": "500"}}>{"Copied to clipboard"}</div> if copied else <span></span>}
+
+                <ErrorBanner msg={error_msg} />
+
+                {<DrugGraph
+                    medications={selected_drugs}
+                    interactions={interactions}
+                    flagged_paths={flagged}
+                    is_dark={dark}
+                /> if has_results else <span></span>}
+
+                {<div style={{
+                    "backgroundColor": card_bg,
+                    "borderRadius": "18px",
+                    "padding": "20px 24px",
+                    "marginBottom": "16px"
+                }}>
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px"}}>
+                        <div style={{"fontSize": "15px", "fontWeight": "600", "color": text1}}>{"AI Summary"}</div>
+                        <span style={{"fontSize": "11px", "color": text2, "fontWeight": "500"}}>{"Claude Haiku 4.5"}</span>
+                    </div>
+                    {<div style={{
+                        "fontSize": "15px",
+                        "color": text2,
+                        "lineHeight": "1.6",
+                        "padding": "16px",
+                        "backgroundColor": card_bg2,
+                        "borderRadius": "12px"
+                    }}>{summary}</div> if summary else <button
+                        onClick={get_summary}
+                        disabled={summary_loading}
+                        style={{
+                            "width": "100%",
+                            "padding": "14px",
+                            "backgroundColor": card_bg2,
+                            "border": "none",
+                            "borderRadius": "12px",
+                            "fontSize": "15px",
+                            "fontWeight": "500",
+                            "cursor": "pointer" if not summary_loading else "wait",
+                            "color": accent if not summary_loading else text3,
+                            "transition": "background-color 0.15s"
+                        }}
+                    >{("Generating..." if summary_loading else "Generate Plain-English Summary")}</button>}
+                </div> if has_flags else <span></span>}
+
+                <ResultsSection results={results} on_copy={copy_results} theme={{"t1": text1, "t2": text2, "c1": card_bg, "c2": card_bg2}} />
+
+                {<div style={{
+                    "display": "flex",
+                    "justifyContent": "center",
+                    "gap": "1px",
+                    "margin": "24px 0 16px",
+                    "backgroundColor": border,
+                    "borderRadius": "16px",
+                    "overflow": "hidden"
+                }}>
+                    <div style={{"flex": "1", "backgroundColor": card_bg, "padding": "20px 16px", "textAlign": "center"}}>
+                        <div style={{"fontSize": "28px", "fontWeight": "700", "color": text1, "letterSpacing": "-0.02em"}}>{str(len(selected_drugs))}</div>
+                        <div style={{"fontSize": "12px", "color": text2, "fontWeight": "500", "marginTop": "2px"}}>{"Medications"}</div>
+                    </div>
+                    <div style={{"flex": "1", "backgroundColor": card_bg, "padding": "20px 16px", "textAlign": "center"}}>
+                        <div style={{"fontSize": "28px", "fontWeight": "700", "color": "#ff3b30" if has_flags else "#34c759", "letterSpacing": "-0.02em"}}>{str(results["total_flags"])}</div>
+                        <div style={{"fontSize": "12px", "color": text2, "fontWeight": "500", "marginTop": "2px"}}>{"Chains Flagged"}</div>
+                    </div>
+                    <div style={{"flex": "1", "backgroundColor": card_bg, "padding": "20px 16px", "textAlign": "center"}}>
+                        <div style={{"fontSize": "28px", "fontWeight": "700", "color": text1, "letterSpacing": "-0.02em"}}>{str(len(interactions))}</div>
+                        <div style={{"fontSize": "12px", "color": text2, "fontWeight": "500", "marginTop": "2px"}}>{"Interactions"}</div>
+                    </div>
+                </div> if has_results else <span></span>}
+            </div>
+
+            <div style={{"padding": "64px 24px 40px"}}>
+                <div style={{"maxWidth": "680px", "margin": "0 auto"}}>
+                    <div style={{
+                        "display": "flex",
+                        "justifyContent": "space-between",
+                        "flexWrap": "wrap",
+                        "gap": "32px",
+                        "paddingBottom": "24px",
+                        "borderBottom": "1px solid " + border
+                    }}>
+                        <div>
+                            <div style={{"fontSize": "17px", "fontWeight": "600", "color": text1, "marginBottom": "6px"}}>{"ChainRX"}</div>
+                            <div style={{"fontSize": "13px", "color": text3, "lineHeight": "1.6", "maxWidth": "260px"}}>{"Multi-drug interaction chain detection using graph traversal and compounding risk analysis."}</div>
+                        </div>
+                        <div>
+                            <div style={{"fontSize": "11px", "fontWeight": "600", "color": text3, "letterSpacing": "0.05em", "marginBottom": "10px"}}>{"TECHNOLOGY"}</div>
+                            <div style={{"fontSize": "13px", "color": text2, "lineHeight": "1.8"}}>
+                                {"Jaseci / JAC Language"}<br />
+                                {"Graph Walkers + Compounding Rules"}<br />
+                                {"Claude Haiku 4.5 (summaries only)"}<br />
+                                {"Claude Haiku 4.5 for summaries"}
+                            </div>
+                        </div>
+                        <div>
+                            <div style={{"fontSize": "11px", "fontWeight": "600", "color": text3, "letterSpacing": "0.05em", "marginBottom": "10px"}}>{"DATA"}</div>
+                            <div style={{"fontSize": "13px", "color": text2, "lineHeight": "1.8"}}>
+                                {"150 medications"}<br />
+                                {"400+ pairwise interactions"}<br />
+                                {"30 compounding rules"}<br />
+                                {"Depth-3 chain traversal"}
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "16px 0", "flexWrap": "wrap", "gap": "8px"}}>
+                        <div style={{"fontSize": "12px", "color": text3}}>{"JacHacks 2026"}</div>
+                        <div style={{"fontSize": "11px", "color": text3}}>{"For educational purposes only. Not medical advice."}</div>
                     </div>
                 </div>
             </div>

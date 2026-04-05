@@ -2,7 +2,7 @@
 
 cl import from react { useRef, useEffect }
 
-def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
+def:pub DrugSelector(drugs: list, selected: list, onToggle: any, card_bg: str = "#1c1c1e") -> any {
     has search: str = "";
     has is_open: bool = False;
     input_ref = useRef(None);
@@ -26,14 +26,14 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
                 "flexWrap": "wrap",
                 "gap": "6px",
                 "padding": "10px 12px",
-                "border": "1px solid " + ("rgba(0,0,0,0.2)" if is_open else "rgba(0,0,0,0.08)"),
+                "border": "1px solid " + ("rgba(0,122,255,0.4)" if is_open else "rgba(128,128,128,0.15)"),
                 "borderRadius": "12px",
                 "minHeight": "44px",
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "transition": "border-color 0.2s, box-shadow 0.2s",
                 "alignItems": "center",
                 "cursor": "text",
-                "boxShadow": "0 0 0 3px rgba(0,122,255,0.12)" if is_open else "none"
+                "boxShadow": "0 0 0 3px rgba(0,122,255,0.15)" if is_open else "none"
             }}
             onClick={lambda {
                 is_open = True;
@@ -44,8 +44,8 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
                 <span
                     key={drug}
                     style={{
-                        "backgroundColor": "#f5f5f7",
-                        "color": "#1d1d1f",
+                        "backgroundColor": "rgba(128,128,128,0.1)",
+                        "color": "inherit",
                         "padding": "4px 10px",
                         "borderRadius": "8px",
                         "fontSize": "13px",
@@ -73,7 +73,7 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
                             "alignItems": "center",
                             "justifyContent": "center",
                             "borderRadius": "50%",
-                            "backgroundColor": "rgba(0,0,0,0.06)"
+                            "backgroundColor": "rgba(128,128,128,0.15)"
                         }}
                     >{"x"}</span>
                 </span>
@@ -94,7 +94,7 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
                     "minWidth": "120px",
                     "padding": "2px 4px",
                     "backgroundColor": "transparent",
-                    "color": "#1d1d1f",
+                    "color": "inherit",
                     "letterSpacing": "-0.01em"
                 }}
             />
@@ -105,13 +105,13 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
             "left": "0",
             "right": "0",
             "marginTop": "6px",
-            "backgroundColor": "#ffffff",
-            "border": "1px solid rgba(0,0,0,0.08)",
+            "backgroundColor": card_bg,
+            "border": "1px solid rgba(128,128,128,0.15)",
             "borderRadius": "12px",
             "maxHeight": "240px",
             "overflowY": "auto",
             "zIndex": "50",
-            "boxShadow": "0 8px 30px rgba(0,0,0,0.12)",
+            "boxShadow": "0 8px 30px rgba(0,0,0,0.4)",
             "padding": "4px"
         }}>
             {[
@@ -126,10 +126,10 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any) -> any {
                     style={{
                         "padding": "8px 12px",
                         "cursor": "pointer",
-                        "backgroundColor": "#f5f5f7" if drug in selected else "transparent",
+                        "backgroundColor": "rgba(128,128,128,0.1)" if drug in selected else "transparent",
                         "borderRadius": "8px",
                         "fontSize": "14px",
-                        "color": "#1d1d1f",
+                        "color": "inherit",
                         "fontWeight": "500" if drug in selected else "400",
                         "transition": "background-color 0.1s",
                         "display": "flex",
