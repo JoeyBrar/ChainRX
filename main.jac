@@ -235,6 +235,40 @@ def generate_interactions_for_custom_drug(custom_drug: str, other_drugs: list[st
     temperature=0.3
 );
 
+"""You are a clinical pharmacology expert. A dangerous multi-drug interaction chain has been detected.
+
+Chain: {chain_path}
+Risk score: {risk_score}
+Interaction mechanisms:
+{mechanisms_text}
+Full medication list: {all_medications}
+
+Your task: suggest ONE safer replacement drug that could substitute for the drug most responsible
+for the dangerous chain. Follow these rules:
+1. Identify which single drug in the chain contributes most to the compounding risk.
+2. Suggest an alternative from the SAME therapeutic class (same indication/purpose) that does NOT
+   have the dangerous interaction with the other drugs in the chain.
+3. Explain WHY the replacement is safer in 1-2 sentences, referencing the specific mechanism avoided.
+4. If no safe replacement exists, say so honestly.
+
+Return ONLY a JSON object with these exact keys:
+- "drug_to_replace": the drug name to remove (string)
+- "replacement_drug": the safer alternative drug name (string, or null if none exists)
+- "therapeutic_class": the drug class/category both drugs belong to (string)
+- "reasoning": 1-2 sentence clinical explanation of why this is safer (string)
+- "confidence": "high", "moderate", or "low" (string)
+
+Return ONLY the JSON object, no markdown formatting or explanation."""
+def suggest_replacement(
+    chain_path: str,
+    risk_score: float,
+    mechanisms_text: str,
+    all_medications: str
+) -> str by llm(
+    model_name="anthropic/claude-haiku-4-5-20251001",
+    temperature=0.3
+);
+
 """Generate a plain-English summary of flagged interaction chains."""
 def generate_summary(flagged_chains: list[dict]) -> str {
     if len(flagged_chains) == 0 {
@@ -261,6 +295,59 @@ def generate_summary(flagged_chains: list[dict]) -> str {
         return explain_for_patient(summary_input);
     } except Exception as ex {
         return f"Unable to generate summary: {str(ex)}";
+    }
+}
+
+"""Suggest a safer replacement drug for a flagged interaction chain, then verify."""
+def suggest_safer_replacement(chain: dict, all_medications: list[str], is_elderly: bool = False) -> dict {
+    chain_path = " -> ".join(chain["path"]);
+    risk_score = float(chain["risk"]);
+    mechanisms_text = "\n".join(chain["mechanisms"]);
+    all_meds_str = ", ".join(all_medications);
+
+    try {
+        raw = suggest_replacement(chain_path, risk_score, mechanisms_text, all_meds_str);
+        cleaned = raw.strip();
+        if cleaned.startswith("```") {
+            lines = cleaned.split("\n");
+            lines = lines[1:];
+            if lines and lines[-1].strip() == "```" {
+                lines = lines[:-1];
+            }
+            cleaned = "\n".join(lines);
+        }
+        parsed = json.loads(cleaned);
+
+        if not isinstance(parsed, dict) or "replacement_drug" not in parsed {
+            return {"error": "Invalid response from AI", "suggestion": None};
+        }
+
+        result = dict(parsed);
+        if parsed["replacement_drug"] {
+            new_meds = [m for m in all_medications if m != str(parsed["drug_to_replace"])];
+            new_meds.append(str(parsed["replacement_drug"]));
+            verification = run_analysis(new_meds, is_elderly);
+
+            new_max_risk = 0.0;
+            for v_chain in verification {
+                if float(v_chain["risk"]) > new_max_risk {
+                    new_max_risk = float(v_chain["risk"]);
+                }
+            }
+
+            result["verified"] = True;
+            result["original_risk"] = risk_score;
+            result["new_max_risk"] = new_max_risk;
+            result["is_actually_safer"] = new_max_risk < risk_score;
+            result["new_chain_count"] = len(verification);
+        } else {
+            result["verified"] = False;
+            result["is_actually_safer"] = False;
+        }
+
+        return {"error": None, "suggestion": result};
+    } except Exception as e {
+        return {"error": f"Failed to generate suggestion: {str(e)}", "suggestion": None};
     }
 }
 
@@ -327,7 +414,7 @@ cl {
         }}>{msg}</div>;
     }
 
-    def ResultsSection(results: any, on_copy: any, theme: any) -> any {
+    def ResultsSection(results: any, on_copy: any, on_suggest: any, replacement_data: any, replacement_loading: bool, replacement_chain_key: str, theme: any) -> any {
         if results["empty"] { return <span></span>; }
         total = results["total_flags"];
         chains = results["flagged_chains"];
@@ -349,7 +436,13 @@ cl {
                 <div style={{"color": theme["t1"], "fontSize": "17px", "fontWeight": "600"}}>{"All Clear"}</div>
                 <div style={{"color": theme["t2"], "fontSize": "14px", "marginTop": "4px"}}>{"No dangerous interaction chains detected."}</div>
             </div> if total == 0 else <div>
-                {[<ResultCard key={str(idx)} chain={chains[idx]} /> for idx in range(len(chains))]}
+                {[<ResultCard
+                    key={str(idx)}
+                    chain={chains[idx]}
+                    onSuggestReplacement={on_suggest}
+                    replacementData={replacement_data if replacement_data and replacement_data["chain_key"] == chains[idx]["path"].join(" -> ") else None}
+                    replacementLoading={replacement_loading and replacement_chain_key == chains[idx]["path"].join(" -> ")}
+                /> for idx in range(len(chains))]}
             </div>}
         </div>;
     }
@@ -397,6 +490,9 @@ cl {
         has summary: str = "";
         has summary_loading: bool = False;
         has custom_drugs: list = [];
+        has replacement_data: any = None;
+        has replacement_loading: bool = False;
+        has replacement_chain_key: str = "";
 
         async can load_drugs with entry {
             try {
@@ -554,7 +650,7 @@ cl {
                 return;
             }
             chains = results["flagged_chains"];
-            lines = ["ChainRX Analysis Report", "Medications: " + selected_drugs.join(", "), "Patient: " + ("65+ (elderly-adjusted)" if results["is_elderly"] else "Under 65"), ""];
+            lines = ["ChainRx Analysis Report", "Medications: " + selected_drugs.join(", "), "Patient: " + ("65+ (elderly-adjusted)" if results["is_elderly"] else "Under 65"), ""];
             idx = 0;
             while idx < len(chains) {
                 c = chains[idx];
@@ -606,6 +702,41 @@ cl {
             do_summary();
         }, [results]);
 
+        get_replacement = useCallback(lambda chain {
+            async def do_replacement() {
+                replacement_loading = True;
+                replacement_chain_key = chain["path"].join(" -> ");
+                replacement_data = None;
+                try {
+                    token = localStorage.getItem("jac_token");
+                    resp = await fetch("/function/suggest_safer_replacement", {
+                        "method": "POST",
+                        "headers": {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + str(token)
+                        },
+                        "body": JSON.stringify({
+                            "chain": chain,
+                            "all_medications": selected_drugs,
+                            "is_elderly": is_elderly
+                        })
+                    });
+                    data = await resp.json();
+                    if data["ok"] {
+                        result = data["data"]["result"];
+                        result["chain_key"] = chain["path"].join(" -> ");
+                        replacement_data = result;
+                    } else {
+                        replacement_data = {"error": "Failed to get suggestion", "suggestion": None, "chain_key": chain["path"].join(" -> ")};
+                    }
+                } except e {
+                    replacement_data = {"error": str(e), "suggestion": None, "chain_key": chain["path"].join(" -> ")};
+                }
+                replacement_loading = False;
+            }
+            do_replacement();
+        }, [selected_drugs, is_elderly]);
+
         can_analyze = len(selected_drugs) >= 2 and not loading;
         btn_cursor = "pointer" if can_analyze else "default";
         btn_text = "Analyzing..." if loading else "Analyze Interactions";
@@ -656,7 +787,7 @@ cl {
                     "alignItems": "center",
                     "padding": "16px 0"
                 }}>
-                    <span style={{"fontSize": "15px", "fontWeight": "600", "color": text1, "letterSpacing": "-0.01em"}}>{"ChainRX"}</span>
+                    <span style={{"fontSize": "15px", "fontWeight": "600", "color": text1, "letterSpacing": "-0.01em"}}>{"Chain"}<span style={{"color": "#00d4aa"}}>{"Rx"}</span></span>
                     <button
                         onClick={lambda { dark = not dark; }}
                         style={{
@@ -698,7 +829,7 @@ cl {
                         "color": text1,
                         "letterSpacing": "-0.04em",
                         "margin": "0 0 10px"
-                    }}>{"ChainRX"}</h1>
+                    }}>{"Chain"}<span style={{"color": "#00d4aa"}}>{"Rx"}</span></h1>
                     <p style={{
                         "fontSize": "17px",
                         "color": text2,
@@ -824,7 +955,7 @@ cl {
                     >{("Generating..." if summary_loading else "Generate Plain-English Summary")}</button>}
                 </div> if has_flags else <span></span>}
 
-                <ResultsSection results={results} on_copy={copy_results} theme={{"t1": text1, "t2": text2, "c1": card_bg, "c2": card_bg2}} />
+                <ResultsSection results={results} on_copy={copy_results} on_suggest={get_replacement} replacement_data={replacement_data} replacement_loading={replacement_loading} replacement_chain_key={replacement_chain_key} theme={{"t1": text1, "t2": text2, "c1": card_bg, "c2": card_bg2}} />
 
                 {<div style={{
                     "display": "flex",
@@ -861,14 +992,14 @@ cl {
                         "borderBottom": "1px solid " + border
                     }}>
                         <div>
-                            <div style={{"fontSize": "17px", "fontWeight": "600", "color": text1, "marginBottom": "6px"}}>{"ChainRX"}</div>
-                            <div style={{"fontSize": "13px", "color": text3, "lineHeight": "1.6", "maxWidth": "260px"}}>{"Multi-drug interaction chain detection using Jaseci Object-Spatial Programming and Walkers."}</div>
+                            <div style={{"fontSize": "17px", "fontWeight": "600", "color": text1, "marginBottom": "6px"}}>{"Chain"}<span style={{"color": "#00d4aa"}}>{"Rx"}</span></div>
+                            <div style={{"fontSize": "13px", "color": text2, "lineHeight": "1.6", "maxWidth": "260px"}}>{"Multi-drug interaction chain detection using Jaseci Object-Spatial Programming and Walkers."}</div>
                         </div>
                         <div>
                             <div style={{"fontSize": "11px", "fontWeight": "600", "color": text3, "letterSpacing": "0.05em", "marginBottom": "10px"}}>{"TECHNOLOGY"}</div>
                             <div style={{"fontSize": "13px", "color": text2, "lineHeight": "1.8"}}>
                                 {"Jaseci / JAC Language"}<br />
-                                {"Claude Haiku 4.5 (summaries & node/edge data retrieval)"}
+                                {"Claude Haiku 4.5"}
                             </div>
                         </div>
                         <div>

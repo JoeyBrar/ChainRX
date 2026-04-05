@@ -1,6 +1,6 @@
 """Result card component for flagged interaction chains."""
 
-def:pub ResultCard(chain: any) -> any {
+def:pub ResultCard(chain: any, onSuggestReplacement: any = None, replacementData: any = None, replacementLoading: bool = False) -> any {
     risk = chain["risk"];
     path = chain["path"];
     mechanisms = chain["mechanisms"];
@@ -116,6 +116,95 @@ def:pub ResultCard(chain: any) -> any {
                 </div>
                 for idx in range(len(mechanisms))
             ]}
+
+            {<div style={{"marginTop": "14px"}}>
+                {<div style={{
+                    "backgroundColor": "rgba(128,128,128,0.06)",
+                    "borderRadius": "12px",
+                    "padding": "16px"
+                }}>
+                    {<div style={{"color": "rgba(128,128,128,0.6)", "fontSize": "14px", "textAlign": "center"}}>{"No safer alternative found for this chain."}</div>
+                    if not replacementData["suggestion"] else
+                    <div>
+                        <div style={{"fontSize": "12px", "fontWeight": "600", "color": "rgba(128,128,128,0.5)", "letterSpacing": "0.02em", "marginBottom": "10px"}}>{"SUGGESTED REPLACEMENT"}</div>
+                        <div style={{
+                            "display": "flex",
+                            "alignItems": "center",
+                            "gap": "8px",
+                            "marginBottom": "12px",
+                            "flexWrap": "wrap"
+                        }}>
+                            <span style={{
+                                "backgroundColor": "rgba(255,59,48,0.12)",
+                                "color": "#ff3b30",
+                                "padding": "5px 12px",
+                                "borderRadius": "8px",
+                                "fontWeight": "500",
+                                "fontSize": "13px",
+                                "textDecoration": "line-through"
+                            }}>{replacementData["suggestion"]["drug_to_replace"]}</span>
+                            <span style={{"color": "rgba(128,128,128,0.6)", "fontSize": "13px"}}>{String.fromCharCode(8594)}</span>
+                            <span style={{
+                                "backgroundColor": "rgba(52,199,89,0.12)",
+                                "color": "#34c759",
+                                "padding": "5px 12px",
+                                "borderRadius": "8px",
+                                "fontWeight": "500",
+                                "fontSize": "13px"
+                            }}>{replacementData["suggestion"]["replacement_drug"]}</span>
+                            <span style={{
+                                "fontSize": "11px",
+                                "color": "rgba(128,128,128,0.5)",
+                                "fontWeight": "500"
+                            }}>{replacementData["suggestion"]["therapeutic_class"]}</span>
+                        </div>
+                        <div style={{
+                            "fontSize": "13px",
+                            "color": "rgba(128,128,128,0.75)",
+                            "lineHeight": "1.5",
+                            "marginBottom": "10px"
+                        }}>{replacementData["suggestion"]["reasoning"]}</div>
+                        <div style={{"display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap"}}>
+                            {<span style={{
+                                "fontSize": "12px",
+                                "fontWeight": "600",
+                                "padding": "3px 10px",
+                                "borderRadius": "6px",
+                                "backgroundColor": "rgba(52,199,89,0.12)" if replacementData["suggestion"]["is_actually_safer"] else "rgba(255,59,48,0.12)",
+                                "color": "#34c759" if replacementData["suggestion"]["is_actually_safer"] else "#ff3b30"
+                            }}>{("Verified Safer (" + str(Math.round(replacementData["suggestion"]["original_risk"] * 100) / 10) + " " + String.fromCharCode(8594) + " " + str(Math.round(replacementData["suggestion"]["new_max_risk"] * 100) / 10) + ")") if replacementData["suggestion"]["is_actually_safer"] else "Warning: May Not Be Safer"}</span> if replacementData["suggestion"]["verified"] else <span style={{
+                                "fontSize": "12px",
+                                "fontWeight": "600",
+                                "padding": "3px 10px",
+                                "borderRadius": "6px",
+                                "backgroundColor": "rgba(255,149,0,0.12)",
+                                "color": "#ff9500"
+                            }}>{"Could Not Verify"}</span>}
+                            <span style={{
+                                "fontSize": "11px",
+                                "fontWeight": "500",
+                                "color": "rgba(128,128,128,0.5)"
+                            }}>{"Confidence: " + replacementData["suggestion"]["confidence"]}</span>
+                        </div>
+                    </div>}
+                </div> if replacementData else
+                <button
+                    onClick={lambda { onSuggestReplacement(chain); }}
+                    disabled={replacementLoading}
+                    style={{
+                        "width": "100%",
+                        "padding": "12px",
+                        "backgroundColor": "rgba(128,128,128,0.06)",
+                        "border": "none",
+                        "borderRadius": "10px",
+                        "fontSize": "14px",
+                        "fontWeight": "500",
+                        "cursor": "pointer" if not replacementLoading else "wait",
+                        "color": "#007aff" if not replacementLoading else "rgba(128,128,128,0.5)",
+                        "transition": "background-color 0.15s"
+                    }}
+                >{("Finding alternative..." if replacementLoading else "Suggest Safer Alternative")}</button>}
+            </div> if onSuggestReplacement else <span></span>}
         </div>
     </div>;
 }
