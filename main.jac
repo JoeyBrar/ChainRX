@@ -361,27 +361,6 @@ def get_all_drugs() -> list[str] {
     return sorted(list(drugs));
 }
 
-walker:pub check_medications {
-    has medications: list[str] = [];
-
-    can analyze with `root() entry {
-        results = run_analysis(self.medications);
-        report {
-            "medications": self.medications,
-            "flagged_chains": results,
-            "total_flags": len(results),
-            "threshold": RISK_THRESHOLD,
-            "all_drugs": get_all_drugs()
-        };
-    }
-}
-
-walker:pub list_drugs {
-    can fetch with `root() entry {
-        report {"drugs": get_all_drugs()};
-    }
-}
-
 glob REGIMENS: list[dict] = [
     {"name": "Post-MI", "drugs": ["Aspirin", "Clopidogrel", "Metoprolol", "Atorvastatin", "Lisinopril"]},
     {"name": "Diabetes + HTN", "drugs": ["Metformin", "Glipizide", "Lisinopril", "Hydrochlorothiazide", "Amlodipine"]},
@@ -397,8 +376,6 @@ glob REGIMENS: list[dict] = [
 def get_regimens() -> list[dict] {
     return REGIMENS;
 }
-
-glob FONT: str = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 cl {
     def ErrorBanner(msg: str) -> any {
