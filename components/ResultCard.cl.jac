@@ -27,7 +27,8 @@ def:pub ResultCard(chain: any) -> any {
         border_color = "#fed7aa";
     }
 
-    risk_pct = str(int(risk * 100)) + "%";
+    score = Math.min(Math.round(risk * 10 * 10) / 10, 10.0);
+    risk_display = str(score) + " / 10";
 
     return <div style={{
         "backgroundColor": bg,
@@ -57,7 +58,7 @@ def:pub ResultCard(chain: any) -> any {
                 "fontSize": "1.5rem",
                 "fontWeight": "800",
                 "color": color
-            }}>{risk_pct}</span>
+            }}>{risk_display}</span>
         </div>
 
         <div style={{
@@ -81,7 +82,7 @@ def:pub ResultCard(chain: any) -> any {
                         "color": "#9ca3af",
                         "fontSize": "1.2rem",
                         "fontWeight": "bold"
-                    }}> -&gt; </span> if idx < len(path) - 1 else <span></span>}
+                    }}>{" " + String.fromCharCode(8594) + " "}</span> if idx < len(path) - 1 else <span></span>}
                 </span>
                 for idx in range(len(path))
             ]}
@@ -97,7 +98,7 @@ def:pub ResultCard(chain: any) -> any {
                     "padding": "0.35rem 0",
                     "borderTop": "1px solid " + border_color if idx > 0 else "none"
                 }}>
-                    <span style={{"fontWeight": "600"}}>Step {str(idx + 1)}: </span>{mechanisms[idx]}
+                    <span style={{"fontWeight": "600"}}>{"Step " + str(idx + 1) + ": "}</span><span>{mechanisms[idx]}</span>
                 </div>
                 for idx in range(len(mechanisms))
             ]}
@@ -108,7 +109,7 @@ def:pub ResultCard(chain: any) -> any {
             "fontSize": "0.75rem",
             "color": "#9ca3af"
         }}>
-            Chain depth: {str(depth)} | Compounding risk detected
+            {"Chain depth: " + str(depth) + " | Compounding risk detected"}
         </div>
     </div>;
 }

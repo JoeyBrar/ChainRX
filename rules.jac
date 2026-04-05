@@ -25,7 +25,39 @@ glob COMPOUNDING_RULES: dict[tuple, float] = {
 
     # Hypotension cascade
     ("additive_hypotension", "reduces_kidney_function"): 1.4,
-    ("additive_hypotension", "additive_hypotension"): 1.5
+    ("additive_hypotension", "additive_hypotension"): 1.5,
+
+    # Reduced clearance cascade: drug accumulation compounds with organ stress
+    ("reduced_clearance", "reduced_clearance"): 1.5,
+    ("reduced_clearance", "bleeding_risk"): 1.4,
+    ("reduced_clearance", "qt_prolongation"): 1.4,
+    ("reduced_clearance", "cns_depression"): 1.3,
+    ("reduced_clearance", "additive_kidney_stress"): 1.4,
+
+    # Hepatotoxicity cascade
+    ("hepatotoxicity", "hepatotoxicity"): 1.6,
+    ("hepatotoxicity", "reduced_clearance"): 1.4,
+
+    # Hypoglycemia cascade
+    ("additive_hypoglycemia", "additive_hypoglycemia"): 1.5,
+    ("additive_hypoglycemia", "reduced_clearance"): 1.3,
+
+    # Anticholinergic burden cascade
+    ("anticholinergic_burden", "anticholinergic_burden"): 1.6,
+    ("anticholinergic_burden", "cns_depression"): 1.4,
+    ("cns_depression", "anticholinergic_burden"): 1.3,
+
+    # Hyperkalemia cascade
+    ("hyperkalemia_risk", "hyperkalemia_risk"): 1.5,
+    ("hyperkalemia_risk", "additive_kidney_stress"): 1.4,
+    ("additive_kidney_stress", "hyperkalemia_risk"): 1.4,
+
+    # Cross-domain escalations
+    ("bleeding_risk", "reduced_clearance"): 1.3,
+    ("qt_prolongation", "reduced_clearance"): 1.3,
+    ("serotonin_increase", "cns_depression"): 1.3,
+    ("additive_hypotension", "cns_depression"): 1.3,
+    ("additive_hypotension", "additive_kidney_stress"): 1.4
 };
 
 glob RISK_THRESHOLD: float = 0.6;

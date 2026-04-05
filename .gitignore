@@ -1,3 +1,6 @@
+# Environment
+.env
+
 # Jac project
 packages/
 *.jbc

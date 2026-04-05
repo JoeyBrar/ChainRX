@@ -26,4 +26,9 @@ watchdog = ">=3.0.0"
 [serve]
 base_route_app = "app"
 
+[plugins.byllm.model]
+default_model = "anthropic/claude-haiku-4-5-20251001"
+temperature = 0.6
+max_tokens = 400
+
 [plugins.client]
