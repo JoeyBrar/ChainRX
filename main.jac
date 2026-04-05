@@ -825,16 +825,31 @@ cl {
                         </div>
                     </div> if has_results else <span></span>}
 
-                    <div style={{
-                        "textAlign": "center",
-                        "padding": "32px 0 16px",
-                        "fontSize": "12px",
-                        "color": "#86868b",
-                        "lineHeight": "1.5"
-                    }}>
-                        {"ChainRX " + String.fromCharCode(183) + " JacHacks 2026"}
-                        <div style={{"marginTop": "4px", "color": "#aeaeb2"}}>{"For educational purposes only. Not medical advice."}</div>
+            </div>
+
+            <div style={{
+                "backgroundColor": "#1d1d1f",
+                "padding": "40px 24px",
+                "marginTop": "24px"
+            }}>
+                <div style={{
+                    "maxWidth": "680px",
+                    "margin": "0 auto",
+                    "display": "flex",
+                    "justifyContent": "space-between",
+                    "alignItems": "center",
+                    "flexWrap": "wrap",
+                    "gap": "16px"
+                }}>
+                    <div>
+                        <div style={{"fontSize": "15px", "fontWeight": "600", "color": "#f5f5f7", "letterSpacing": "-0.01em"}}>{"ChainRX"}</div>
+                        <div style={{"fontSize": "12px", "color": "#86868b", "marginTop": "4px"}}>{"Pure graph traversal. Zero LLM calls for detection."}</div>
                     </div>
+                    <div style={{"textAlign": "right"}}>
+                        <div style={{"fontSize": "12px", "color": "#86868b"}}>{"JacHacks 2026"}</div>
+                        <div style={{"fontSize": "11px", "color": "#48484a", "marginTop": "4px"}}>{"For educational purposes only."}</div>
+                    </div>
+                </div>
             </div>
         </div>;
     }
