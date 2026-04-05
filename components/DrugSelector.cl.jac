@@ -2,7 +2,7 @@
 
 cl import from react { useRef, useEffect }
 
-def:pub DrugSelector(drugs: list, selected: list, onToggle: any, onAddCustom: any = None, card_bg: str = "#1c1c1e") -> any {
+def:pub DrugSelector(drugs: list, selected: list, customDrugs: list = [], onToggle: any = None, onAddCustom: any = None, card_bg: str = "#1c1c1e") -> any {
     has search: str = "";
     has is_open: bool = False;
     input_ref = useRef(None);
@@ -55,8 +55,8 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any, onAddCustom: an
                 <span
                     key={drug}
                     style={{
-                        "backgroundColor": "rgba(128,128,128,0.1)",
-                        "color": "inherit",
+                        "backgroundColor": "rgba(0,122,255,0.12)" if drug in customDrugs else "rgba(128,128,128,0.1)",
+                        "color": "#007aff" if drug in customDrugs else "inherit",
                         "padding": "4px 10px",
                         "borderRadius": "8px",
                         "fontSize": "13px",
@@ -96,6 +96,11 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any, onAddCustom: an
                 placeholder={"Search medications..." if len(selected) == 0 else "Add more..."}
                 value={search}
                 onChange={lambda e { search = e.target.value; }}
+                onKeyDown={lambda e {
+                    if e.key == "Backspace" and search == "" and len(selected) > 0 {
+                        onToggle(selected[len(selected) - 1]);
+                    }
+                }}
                 onFocus={lambda { is_open = True; }}
                 style={{
                     "border": "none",
@@ -137,10 +142,10 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any, onAddCustom: an
                     style={{
                         "padding": "8px 12px",
                         "cursor": "pointer",
-                        "backgroundColor": "rgba(128,128,128,0.1)" if drug in selected else "transparent",
+                        "backgroundColor": "rgba(0,122,255,0.12)" if drug in selected else "transparent",
                         "borderRadius": "8px",
                         "fontSize": "14px",
-                        "color": "inherit",
+                        "color": "#007aff" if drug in selected else "inherit",
                         "fontWeight": "500" if drug in selected else "400",
                         "transition": "background-color 0.1s",
                         "display": "flex",

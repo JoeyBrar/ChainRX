@@ -271,9 +271,27 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list, is
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                # Edge label on hover — simple rect, no roundRect
+                di = di + 1;
+            }
+
+            # --- EDGE LABELS (drawn before nodes so node labels stay on top) ---
+            dli = 0;
+            while dli < len(edges) {
+                e = edges[dli];
+                hl = mouse["h"] == e["s"] or mouse["h"] == e["t"];
                 if hl {
-                    label = e["type"].replace("_", " ");
+                    sx = nodes[e["s"]]["x"];
+                    sy = nodes[e["s"]]["y"];
+                    tx = nodes[e["t"]]["x"];
+                    ty = nodes[e["t"]]["y"];
+                    dx = tx - sx;
+                    dy = ty - sy;
+                    dist = Math.sqrt(dx * dx + dy * dy) + 1;
+                    off = e["off"];
+                    cpx = (sx + tx) / 2 + (-dy / dist) * off;
+                    cpy = (sy + ty) / 2 + (dx / dist) * off;
+
+                    label = e["type"].split("_").join(" ");
                     ctx.font = "500 10px -apple-system, sans-serif";
                     tw = ctx.measureText(label).width;
                     ctx.fillStyle = edge_label_bg;
@@ -283,7 +301,7 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list, is
                     ctx.textBaseline = "middle";
                     ctx.fillText(label, cpx, cpy);
                 }
-                di = di + 1;
+                dli = dli + 1;
             }
 
             # --- NODES ---

@@ -579,9 +579,11 @@ cl {
         }, [selected_drugs]);
 
         add_custom_drug = useCallback(lambda drug_name {
-            if drug_name not in selected_drugs and drug_name not in all_drugs {
-                custom_drugs = custom_drugs + [drug_name];
-                all_drugs = sorted(all_drugs + [drug_name]);
+            if drug_name not in selected_drugs {
+                if drug_name not in all_drugs {
+                    custom_drugs = custom_drugs + [drug_name];
+                    all_drugs = sorted(all_drugs + [drug_name]);
+                }
                 selected_drugs = selected_drugs + [drug_name];
                 results = {"flagged_chains": [], "total_flags": 0, "is_elderly": False, "empty": True};
             }
@@ -811,18 +813,6 @@ cl {
                     "textAlign": "center",
                     "padding": "40px 0 48px"
                 }}>
-                    <div style={{
-                        "display": "inline-flex",
-                        "alignItems": "center",
-                        "gap": "8px",
-                        "backgroundColor": toggle_bg,
-                        "padding": "5px 12px",
-                        "borderRadius": "20px",
-                        "marginBottom": "16px"
-                    }}>
-                        <span style={{"width": "5px", "height": "5px", "borderRadius": "50%", "backgroundColor": "#30d158"}}></span>
-                        <span style={{"fontSize": "11px", "color": text2, "fontWeight": "500", "letterSpacing": "0.04em"}}>{"JACHACKS 2026"}</span>
-                    </div>
                     <h1 style={{
                         "fontSize": "48px",
                         "fontWeight": "700",
@@ -852,6 +842,7 @@ cl {
                     <DrugSelector
                         drugs={all_drugs}
                         selected={selected_drugs}
+                        customDrugs={custom_drugs}
                         onToggle={toggle_drug}
                         onAddCustom={add_custom_drug}
                         card_bg={card_bg}

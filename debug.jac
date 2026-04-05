@@ -1,5 +1,3 @@
-"""Debug: check what spawn returns."""
-
 import from graph { Drug, InteractsWith }
 import from walkers { ChainWalker }
 

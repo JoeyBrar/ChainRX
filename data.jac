@@ -1,7 +1,6 @@
-"""Drug interaction dataset for ChainRX. Real, medically documented interactions."""
+"""Drug interaction dataset for ChainRx."""
 
 glob DRUG_INTERACTIONS: list[dict] = [
-    # === TRIPLE WHAMMY (ACEi/ARB + NSAID + Diuretic/Metformin) ===
     {
         "drug_a": "Ibuprofen",
         "drug_b": "Lisinopril",
