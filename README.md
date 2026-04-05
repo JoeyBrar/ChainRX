@@ -33,7 +33,7 @@ JAC is very new, so the AI coding tools easily hallucinate its syntax. Debugging
 
 ## Accomplishments that we're proud of
 
-We are proud that we created a completely novel solution that is translation and practical for patients and healthcare professionals. This will be able to save countless lives and is highly accessible to all populations. In addition, there is nothing in the market that does what ChainRx does right now even though multi-drug consequences are becoming increasingly very relevant for hospitals.
+We are proud that we created a novel solution that is both translational and practical for patients and healthcare professionals. ChainRx addresses a real clinical gap that could meaningfully improve patient safety. Currently, no existing tool checks for multi-drug chain interactions, though multi-drug consequences are becoming increasingly relevant today.
 
 ## What we learned
 
