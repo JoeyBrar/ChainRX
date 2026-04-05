@@ -535,12 +535,20 @@ cl {
         has_results = not results["empty"];
         has_flags = results["total_flags"] > 0;
 
+        # Kill body margin/padding
+        document.body.style.margin = "0";
+        document.body.style.padding = "0";
+        document.documentElement.style.margin = "0";
+        document.documentElement.style.padding = "0";
+
         return <div style={{
             "minHeight": "100vh",
             "backgroundColor": "#f5f5f7",
             "fontFamily": "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             "color": "#1d1d1f",
-            "WebkitFontSmoothing": "antialiased"
+            "WebkitFontSmoothing": "antialiased",
+            "display": "flex",
+            "flexDirection": "column"
         }}>
             <div style={{
                 "background": "linear-gradient(180deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)",
@@ -634,7 +642,8 @@ cl {
                 "margin": "-48px auto 0",
                 "padding": "0 24px 48px",
                 "position": "relative",
-                "zIndex": "2"
+                "zIndex": "2",
+                "flex": "1"
             }}>
                     <div style={{
                         "backgroundColor": "#ffffff",

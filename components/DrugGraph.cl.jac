@@ -109,14 +109,68 @@ def:pub DrugGraph(medications: list, interactions: list, flagged_paths: list) ->
             pi = pi + 1;
         }
 
-        # Nodes
+        # Build adjacency lists for layout ordering
+        adj = {};
+        ai = 0;
+        while ai < count { adj[ai] = []; ai = ai + 1; }
+        ae = 0;
+        while ae < len(edges) {
+            adj[edges[ae]["s"]].push(edges[ae]["t"]);
+            adj[edges[ae]["t"]].push(edges[ae]["s"]);
+            ae = ae + 1;
+        }
+
+        # Greedy circular ordering: place connected nodes adjacent
+        # Start with highest-degree node, then greedily pick neighbor
+        order = [];
+        placed = {};
+        # Find start: node with most edges
+        best = 0;
+        bval = 0;
+        bi = 0;
+        while bi < count {
+            if len(adj[bi]) > bval { bval = len(adj[bi]); best = bi; }
+            bi = bi + 1;
+        }
+        order.push(best);
+        placed[best] = True;
+        while len(order) < count {
+            last = order[len(order) - 1];
+            # Try to find unplaced neighbor of last
+            found = -1;
+            fi2 = 0;
+            while fi2 < len(adj[last]) {
+                cand = adj[last][fi2];
+                if not (cand in placed) { found = cand; }
+                fi2 = fi2 + 1;
+            }
+            if found < 0 {
+                # No neighbor available, pick any unplaced
+                ui2 = 0;
+                while ui2 < count {
+                    if not (ui2 in placed) { found = ui2; }
+                    ui2 = ui2 + 1;
+                }
+            }
+            order.push(found);
+            placed[found] = True;
+        }
+
+        # Place nodes in this order around circle
         spread = Math.min(w * 0.40, h * 0.38);
         nodes = [];
         ni = 0;
         while ni < count {
-            angle = (2 * Math.PI * ni / count) - (Math.PI / 2);
-            nodes.push({"x": cx + Math.cos(angle) * spread, "y": cy + Math.sin(angle) * spread, "vx": 0, "vy": 0});
+            nodes.push({"x": 0, "y": 0, "vx": 0, "vy": 0});
             ni = ni + 1;
+        }
+        oi = 0;
+        while oi < count {
+            angle = (2 * Math.PI * oi / count) - (Math.PI / 2);
+            idx2 = order[oi];
+            nodes[idx2]["x"] = cx + Math.cos(angle) * spread;
+            nodes[idx2]["y"] = cy + Math.sin(angle) * spread;
+            oi = oi + 1;
         }
 
         running = {"v": True};
