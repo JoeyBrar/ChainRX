@@ -278,6 +278,43 @@ glob DRUG_INTERACTIONS: list[dict] = [
         "severity": 0.9
     },
 
+    # === ADDITIONAL PSYCH INTERACTIONS ===
+    {
+        "drug_a": "Fluoxetine",
+        "drug_b": "Lithium",
+        "type": "serotonin_increase",
+        "mechanism": "Lithium augments serotonergic transmission; combined with SSRI raises serotonin syndrome risk",
+        "severity": 0.45
+    },
+    {
+        "drug_a": "Fluoxetine",
+        "drug_b": "Alprazolam",
+        "type": "reduced_clearance",
+        "mechanism": "Fluoxetine inhibits CYP3A4 metabolism of alprazolam, raising levels and sedation",
+        "severity": 0.5
+    },
+    {
+        "drug_a": "Trazodone",
+        "drug_b": "Alprazolam",
+        "type": "cns_depression",
+        "mechanism": "Trazodone plus benzodiazepine causes additive sedation and respiratory depression",
+        "severity": 0.5
+    },
+    {
+        "drug_a": "Trazodone",
+        "drug_b": "Lithium",
+        "type": "serotonin_increase",
+        "mechanism": "Both agents increase serotonergic tone; combined use raises serotonin syndrome risk",
+        "severity": 0.4
+    },
+    {
+        "drug_a": "Alprazolam",
+        "drug_b": "Lithium",
+        "type": "cns_depression",
+        "mechanism": "Benzodiazepine plus lithium causes additive CNS depression and neurotoxicity risk",
+        "severity": 0.35
+    },
+
     # === BLEEDING RISK CHAINS ===
     {
         "drug_a": "Warfarin",

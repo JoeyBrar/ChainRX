@@ -1,4 +1,4 @@
-"""Result card component showing a flagged interaction chain."""
+"""Result card component for flagged interaction chains."""
 
 def:pub ResultCard(chain: any) -> any {
     risk = chain["risk"];
@@ -6,110 +6,130 @@ def:pub ResultCard(chain: any) -> any {
     mechanisms = chain["mechanisms"];
     depth = chain["depth"];
 
-    severity_label = "CRITICAL";
-    color = "#dc2626";
-    bg = "#fef2f2";
-    border_color = "#fecaca";
+    severity_label = "Critical";
+    color = "#ff3b30";
+    tint = "#fff5f5";
     if risk < 0.6 {
-        severity_label = "LOW";
-        color = "#16a34a";
-        bg = "#f0fdf4";
-        border_color = "#bbf7d0";
+        severity_label = "Low";
+        color = "#34c759";
+        tint = "#f0fdf4";
     } elif risk < 0.7 {
-        severity_label = "MODERATE";
-        color = "#ca8a04";
-        bg = "#fefce8";
-        border_color = "#fef08a";
+        severity_label = "Moderate";
+        color = "#ff9500";
+        tint = "#fffbeb";
     } elif risk < 0.9 {
-        severity_label = "HIGH";
-        color = "#ea580c";
-        bg = "#fff7ed";
-        border_color = "#fed7aa";
+        severity_label = "High";
+        color = "#ff6b35";
+        tint = "#fff7ed";
     }
 
     score = Math.min(Math.round(risk * 10 * 10) / 10, 10.0);
-    risk_display = str(score) + " / 10";
+    bar_pct = str(Math.min(Math.round(score * 10), 100)) + "%";
 
     return <div style={{
-        "backgroundColor": bg,
-        "border": "2px solid " + border_color,
-        "borderRadius": "1rem",
-        "padding": "1.25rem",
-        "marginBottom": "1rem",
-        "boxShadow": "0 2px 8px rgba(0,0,0,0.06)"
+        "backgroundColor": "#ffffff",
+        "borderRadius": "16px",
+        "marginBottom": "10px",
+        "overflow": "hidden",
+        "boxShadow": "0 1px 2px rgba(0,0,0,0.04)"
     }}>
         <div style={{
             "display": "flex",
             "justifyContent": "space-between",
             "alignItems": "center",
-            "marginBottom": "0.75rem"
+            "padding": "16px 20px",
+            "backgroundColor": tint
         }}>
-            <span style={{
-                "backgroundColor": color,
-                "color": "#ffffff",
-                "padding": "0.25rem 0.75rem",
-                "borderRadius": "9999px",
-                "fontSize": "0.75rem",
-                "fontWeight": "700",
-                "textTransform": "uppercase",
-                "letterSpacing": "0.05em"
-            }}>{severity_label}</span>
-            <span style={{
-                "fontSize": "1.5rem",
-                "fontWeight": "800",
-                "color": color
-            }}>{risk_display}</span>
+            <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
+                <span style={{
+                    "width": "8px",
+                    "height": "8px",
+                    "borderRadius": "50%",
+                    "backgroundColor": color,
+                    "flexShrink": "0"
+                }}></span>
+                <span style={{
+                    "fontSize": "13px",
+                    "fontWeight": "600",
+                    "color": color,
+                    "letterSpacing": "-0.01em"
+                }}>{severity_label}</span>
+            </div>
+            <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
+                <div style={{
+                    "width": "48px",
+                    "height": "4px",
+                    "backgroundColor": "rgba(0,0,0,0.06)",
+                    "borderRadius": "2px",
+                    "overflow": "hidden"
+                }}>
+                    <div style={{
+                        "width": bar_pct,
+                        "height": "100%",
+                        "backgroundColor": color,
+                        "borderRadius": "2px"
+                    }}></div>
+                </div>
+                <span style={{
+                    "fontSize": "20px",
+                    "fontWeight": "700",
+                    "color": "#1d1d1f",
+                    "letterSpacing": "-0.02em",
+                    "fontVariantNumeric": "tabular-nums"
+                }}>{str(score)}</span>
+            </div>
         </div>
 
-        <div style={{
-            "display": "flex",
-            "alignItems": "center",
-            "gap": "0.5rem",
-            "marginBottom": "0.75rem",
-            "flexWrap": "wrap"
-        }}>
-            {[
-                <span key={str(idx)}>
-                    <span style={{
-                        "backgroundColor": "#ffffff",
-                        "padding": "0.35rem 0.75rem",
-                        "borderRadius": "0.5rem",
-                        "fontWeight": "600",
-                        "fontSize": "0.9rem",
-                        "border": "1px solid #d1d5db"
-                    }}>{path[idx]}</span>
-                    {<span style={{
-                        "color": "#9ca3af",
-                        "fontSize": "1.2rem",
-                        "fontWeight": "bold"
-                    }}>{" " + String.fromCharCode(8594) + " "}</span> if idx < len(path) - 1 else <span></span>}
-                </span>
-                for idx in range(len(path))
-            ]}
-        </div>
+        <div style={{"padding": "16px 20px"}}>
+            <div style={{
+                "display": "flex",
+                "alignItems": "center",
+                "gap": "6px",
+                "marginBottom": "14px",
+                "flexWrap": "wrap"
+            }}>
+                {[
+                    <span key={str(idx)} style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                        <span style={{
+                            "backgroundColor": "#f5f5f7",
+                            "padding": "5px 12px",
+                            "borderRadius": "8px",
+                            "fontWeight": "500",
+                            "fontSize": "13px",
+                            "color": "#1d1d1f",
+                            "letterSpacing": "-0.01em"
+                        }}>{path[idx]}</span>
+                        {<span style={{
+                            "color": "#86868b",
+                            "fontSize": "13px"
+                        }}>{" " + String.fromCharCode(8594) + " "}</span> if idx < len(path) - 1 else <span></span>}
+                    </span>
+                    for idx in range(len(path))
+                ]}
+            </div>
 
-        <div style={{
-            "fontSize": "0.8rem",
-            "color": "#4b5563",
-            "lineHeight": "1.6"
-        }}>
             {[
                 <div key={str(idx)} style={{
-                    "padding": "0.35rem 0",
-                    "borderTop": "1px solid " + border_color if idx > 0 else "none"
+                    "padding": "10px 0",
+                    "borderTop": "1px solid rgba(0,0,0,0.04)" if idx > 0 else "none",
+                    "fontSize": "13px",
+                    "color": "#424245",
+                    "lineHeight": "1.5",
+                    "display": "flex",
+                    "gap": "8px"
                 }}>
-                    <span style={{"fontWeight": "600"}}>{"Step " + str(idx + 1) + ": "}</span><span>{mechanisms[idx]}</span>
+                    <span style={{
+                        "color": "#86868b",
+                        "fontSize": "12px",
+                        "fontWeight": "600",
+                        "minWidth": "16px",
+                        "flexShrink": "0",
+                        "paddingTop": "1px"
+                    }}>{str(idx + 1)}</span>
+                    <span>{mechanisms[idx]}</span>
                 </div>
                 for idx in range(len(mechanisms))
             ]}
-        </div>
-
-        <div style={{
-            "marginTop": "0.5rem",
-            "fontSize": "0.75rem",
-            "color": "#9ca3af"
-        }}>
-            {"Chain depth: " + str(depth) + " | Compounding risk detected"}
         </div>
     </div>;
 }
