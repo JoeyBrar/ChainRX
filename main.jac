@@ -827,7 +827,7 @@ cl {
                         customDrugs={custom_drugs}
                         onToggle={toggle_drug}
                         onAddCustom={add_custom_drug}
-                        card_bg={card_bg}
+                        card_bg={"#1c1c1e" if dark else "#f5f5f7"}
                     />
 
                     <div style={{
