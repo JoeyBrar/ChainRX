@@ -4,21 +4,67 @@ import from graph { Drug, InteractsWith }
 import from data { DRUG_INTERACTIONS }
 import from rules { RISK_THRESHOLD }
 import from walkers { ChainWalker, reset_collector, get_collected_chains }
+import json;
 
 cl import from react { useState, useEffect, useCallback }
 cl import from .components.DrugSelector { DrugSelector }
 cl import from .components.ResultCard { ResultCard }
 cl import from .components.DrugGraph { DrugGraph }
 
+"""Fetch LLM-generated interactions for a custom drug and parse the JSON response."""
+def resolve_custom_drug(custom_drug: str, other_drugs: list[str]) -> list[dict] {
+    try {
+        raw = generate_interactions_for_custom_drug(custom_drug, other_drugs);
+        # Strip markdown fences if present
+        cleaned = raw.strip();
+        if cleaned.startswith("```") {
+            lines = cleaned.split("\n");
+            lines = lines[1:];
+            if lines and lines[-1].strip() == "```" {
+                lines = lines[:-1];
+            }
+            cleaned = "\n".join(lines);
+        }
+        parsed = json.loads(cleaned);
+        if not isinstance(parsed, list) {
+            return [];
+        }
+        valid = list[dict]();
+        for item in parsed {
+            if (isinstance(item, dict)
+                and "drug_a" in item and "drug_b" in item
+                and "type" in item and "mechanism" in item
+                and "severity" in item) {
+                sev = float(item["severity"]);
+                if sev < 0.0 { sev = 0.0; }
+                if sev > 1.0 { sev = 1.0; }
+                valid.append({
+                    "drug_a": str(item["drug_a"]),
+                    "drug_b": str(item["drug_b"]),
+                    "type": str(item["type"]),
+                    "mechanism": str(item["mechanism"]),
+                    "severity": sev
+                });
+            }
+        }
+        return valid;
+    } except Exception as e {
+        print(f"Failed to resolve custom drug '{custom_drug}': {e}");
+        return [];
+    }
+}
+
 """Build drug graph for given medication names. Returns map of name -> node."""
-def build_graph(medications: list[str]) -> dict[str, Drug] {
+def build_graph(medications: list[str], extra_interactions: list[dict] = []) -> dict[str, Drug] {
     drug_nodes = dict[str, Drug]();
 
     for med in medications {
         drug_nodes[med] = Drug(name=med);
     }
 
-    for interaction in DRUG_INTERACTIONS {
+    all_interactions = list(DRUG_INTERACTIONS) + extra_interactions;
+
+    for interaction in all_interactions {
         a = str(interaction["drug_a"]);
         b = str(interaction["drug_b"]);
         if a in drug_nodes and b in drug_nodes {
@@ -75,8 +121,9 @@ def get_explanation(chain: dict) -> str {
 }
 
 """Look up the mechanism description for a pair of drugs."""
-def get_mechanism(drug_a: str, drug_b: str) -> str {
-    for interaction in DRUG_INTERACTIONS {
+def get_mechanism(drug_a: str, drug_b: str, extra_interactions: list[dict] = []) -> str {
+    all_interactions = list(DRUG_INTERACTIONS) + extra_interactions;
+    for interaction in all_interactions {
         a = str(interaction["drug_a"]);
         b = str(interaction["drug_b"]);
         if (a == drug_a and b == drug_b) or (a == drug_b and b == drug_a) {
@@ -91,7 +138,18 @@ glob ELDERLY_MULTIPLIER: float = 1.3;
 """Core orchestrator: build graph, spawn walkers, collect results."""
 def run_analysis(medications: list[str], is_elderly: bool = False) -> list[dict] {
     reset_collector();
-    drug_nodes = build_graph(medications);
+    known_drugs = get_all_drugs();
+    extra_interactions = list[dict]();
+    for med in medications {
+        if med not in known_drugs {
+            others = [m for m in medications if m != med];
+            if len(others) > 0 {
+                generated = resolve_custom_drug(med, others);
+                extra_interactions = extra_interactions + generated;
+            }
+        }
+    }
+    drug_nodes = build_graph(medications, extra_interactions);
 
     for name in drug_nodes {
         ChainWalker(
@@ -117,7 +175,7 @@ def run_analysis(medications: list[str], is_elderly: bool = False) -> list[dict]
         mechanisms = list[str]();
         i = 0;
         while i < len(path) - 1 {
-            mech = get_mechanism(str(path[i]), str(path[i + 1]));
+            mech = get_mechanism(str(path[i]), str(path[i + 1]), extra_interactions);
             mechanisms.append(f"{path[i]} + {path[i+1]}: {mech}");
             i += 1;
         }
@@ -126,10 +184,22 @@ def run_analysis(medications: list[str], is_elderly: bool = False) -> list[dict]
     return results;
 }
 
-"""Get pairwise interactions for a set of medications."""
+"""Get pairwise interactions for a set of medications (including custom drugs)."""
 def get_interactions_for(medications: list[str]) -> list[dict] {
+    known_drugs = get_all_drugs();
+    extra_interactions = list[dict]();
+    for med in medications {
+        if med not in known_drugs {
+            others = [m for m in medications if m != med];
+            if len(others) > 0 {
+                generated = resolve_custom_drug(med, others);
+                extra_interactions = extra_interactions + generated;
+            }
+        }
+    }
+    all_interactions = list(DRUG_INTERACTIONS) + extra_interactions;
     result = list[dict]();
-    for interaction in DRUG_INTERACTIONS {
+    for interaction in all_interactions {
         a = str(interaction["drug_a"]);
         b = str(interaction["drug_b"]);
         if a in medications and b in medications {
@@ -144,6 +214,26 @@ patient-friendly explanation that a non-medical person can understand. Mention t
 specific drugs involved, what the danger is in plain language, and what action to
 take (e.g. talk to your pharmacist). Do not use medical jargon. Be concise."""
 def explain_for_patient(chain_summary: str) -> str by llm();
+
+"""You are a clinical pharmacology expert. Given a drug name and a list of other drugs,
+return a JSON array of known pairwise drug interactions. Each element must be a JSON object with these exact keys:
+- "drug_a": the custom drug name (string)
+- "drug_b": one of the other drugs it interacts with (string)
+- "type": one of these exact categories: "reduces_kidney_function", "additive_kidney_stress",
+  "reduced_clearance", "hyperkalemia_risk", "serotonin_increase", "bleeding_risk",
+  "qt_prolongation", "cns_depression", "additive_hypotension", "hepatotoxicity",
+  "additive_hypoglycemia", "anticholinergic_burden"
+- "mechanism": a one-sentence pharmacological explanation (string)
+- "severity": a float between 0.0 and 1.0 representing clinical severity
+
+Only include interactions that are medically documented. If there is no known interaction
+between the custom drug and a given drug, omit it. Return an empty array [] if there
+are no interactions with any of the listed drugs.
+Return ONLY the JSON array, no markdown formatting or explanation."""
+def generate_interactions_for_custom_drug(custom_drug: str, other_drugs: list[str]) -> str by llm(
+    model_name="anthropic/claude-haiku-4-5-20251001",
+    temperature=0.3
+);
 
 """Generate a plain-English summary of flagged interaction chains."""
 def generate_summary(flagged_chains: list[dict]) -> str {
@@ -306,6 +396,7 @@ cl {
         has interactions: list = [];
         has summary: str = "";
         has summary_loading: bool = False;
+        has custom_drugs: list = [];
 
         async can load_drugs with entry {
             try {
@@ -390,6 +481,15 @@ cl {
             }
             results = {"flagged_chains": [], "total_flags": 0, "is_elderly": False, "empty": True};
         }, [selected_drugs]);
+
+        add_custom_drug = useCallback(lambda drug_name {
+            if drug_name not in selected_drugs and drug_name not in all_drugs {
+                custom_drugs = custom_drugs + [drug_name];
+                all_drugs = sorted(all_drugs + [drug_name]);
+                selected_drugs = selected_drugs + [drug_name];
+                results = {"flagged_chains": [], "total_flags": 0, "is_elderly": False, "empty": True};
+            }
+        }, [selected_drugs, all_drugs, custom_drugs]);
 
         select_regimen = useCallback(lambda drugs {
             selected_drugs = drugs;
@@ -622,6 +722,7 @@ cl {
                         drugs={all_drugs}
                         selected={selected_drugs}
                         onToggle={toggle_drug}
+                        onAddCustom={add_custom_drug}
                         card_bg={card_bg}
                     />
 
@@ -761,15 +862,13 @@ cl {
                     }}>
                         <div>
                             <div style={{"fontSize": "17px", "fontWeight": "600", "color": text1, "marginBottom": "6px"}}>{"ChainRX"}</div>
-                            <div style={{"fontSize": "13px", "color": text3, "lineHeight": "1.6", "maxWidth": "260px"}}>{"Multi-drug interaction chain detection using graph traversal and compounding risk analysis."}</div>
+                            <div style={{"fontSize": "13px", "color": text3, "lineHeight": "1.6", "maxWidth": "260px"}}>{"Multi-drug interaction chain detection using Jaseci Object-Spatial Programming and Walkers."}</div>
                         </div>
                         <div>
                             <div style={{"fontSize": "11px", "fontWeight": "600", "color": text3, "letterSpacing": "0.05em", "marginBottom": "10px"}}>{"TECHNOLOGY"}</div>
                             <div style={{"fontSize": "13px", "color": text2, "lineHeight": "1.8"}}>
                                 {"Jaseci / JAC Language"}<br />
-                                {"Graph Walkers + Compounding Rules"}<br />
-                                {"Claude Haiku 4.5 (summaries only)"}<br />
-                                {"Claude Haiku 4.5 for summaries"}
+                                {"Claude Haiku 4.5 (summaries & node/edge data retrieval)"}
                             </div>
                         </div>
                         <div>
@@ -778,7 +877,7 @@ cl {
                                 {"150 medications"}<br />
                                 {"400+ pairwise interactions"}<br />
                                 {"30 compounding rules"}<br />
-                                {"Depth-3 chain traversal"}
+                                {"Depth-4 chain traversal"}
                             </div>
                         </div>
                     </div>

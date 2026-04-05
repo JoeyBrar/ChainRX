@@ -2,12 +2,23 @@
 
 cl import from react { useRef, useEffect }
 
-def:pub DrugSelector(drugs: list, selected: list, onToggle: any, card_bg: str = "#1c1c1e") -> any {
+def:pub DrugSelector(drugs: list, selected: list, onToggle: any, onAddCustom: any = None, card_bg: str = "#1c1c1e") -> any {
     has search: str = "";
     has is_open: bool = False;
     input_ref = useRef(None);
 
     filtered = [d for d in drugs if d.toLowerCase().includes(search.toLowerCase())];
+    search_trimmed = search.strip();
+    # Show "Add custom" if search doesn't exactly match any known drug (case-insensitive)
+    has_exact_match = False;
+    if search_trimmed {
+        for d in drugs {
+            if d.toLowerCase() == search_trimmed.toLowerCase() {
+                has_exact_match = True;
+            }
+        }
+    }
+    show_add_custom = onAddCustom and len(search_trimmed) >= 2 and not has_exact_match;
 
     useEffect(lambda {
         def handle_click(e: any) {
@@ -142,12 +153,41 @@ def:pub DrugSelector(drugs: list, selected: list, onToggle: any, card_bg: str = 
                 </div>
                 for drug in filtered
             ]}
+            {<div
+                onClick={lambda e {
+                    e.stopPropagation();
+                    # Capitalize first letter of each word
+                    words = search_trimmed.split(" ");
+                    capitalized = [w[0].toUpperCase() + w.slice(1) if len(w) > 0 else w for w in words];
+                    drug_name = capitalized.join(" ");
+                    onAddCustom(drug_name);
+                    search = "";
+                    if input_ref.current { input_ref.current.focus(); }
+                }}
+                style={{
+                    "padding": "10px 12px",
+                    "cursor": "pointer",
+                    "borderRadius": "8px",
+                    "fontSize": "14px",
+                    "color": "#007aff",
+                    "fontWeight": "500",
+                    "display": "flex",
+                    "alignItems": "center",
+                    "gap": "6px",
+                    "transition": "background-color 0.1s",
+                    "borderTop": "1px solid rgba(128,128,128,0.1)" if len(filtered) > 0 else "none",
+                    "marginTop": "2px" if len(filtered) > 0 else "0"
+                }}
+            >
+                <span style={{"fontSize": "16px", "fontWeight": "600"}}>{"+"}</span>
+{"Add " + String.fromCharCode(8220) + search_trimmed + String.fromCharCode(8221) + " as custom drug"}
+            </div> if show_add_custom else <span></span>}
             {<div style={{
                 "padding": "16px",
                 "color": "#86868b",
                 "fontSize": "14px",
                 "textAlign": "center"
-            }}>{"No results"}</div> if len(filtered) == 0 else <span></span>}
+            }}>{"No results"}</div> if len(filtered) == 0 and not show_add_custom else <span></span>}
         </div> if is_open else <span></span>}
     </div>;
 }
