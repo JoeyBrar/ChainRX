@@ -10,6 +10,7 @@ cl import from react { useState, useEffect, useCallback }
 cl import from .components.DrugSelector { DrugSelector }
 cl import from .components.ResultCard { ResultCard }
 cl import from .components.DrugGraph { DrugGraph }
+cl import from .components.CaffeineBackground { CaffeineBackground }
 
 """Fetch LLM-generated interactions for a custom drug and parse the JSON response."""
 def resolve_custom_drug(custom_drug: str, other_drugs: list[str]) -> list[dict] {
@@ -731,8 +732,8 @@ cl {
 
         # Theme colors
         bg = "#0a0a1a" if dark else "#ffffff";
-        card_bg = "#1c1c1e" if dark else "#f5f5f7";
-        card_bg2 = "#2c2c2e" if dark else "#e5e5ea";
+        card_bg = "rgba(28,28,30,0.78)" if dark else "rgba(245,245,247,0.82)";
+        card_bg2 = "rgba(44,44,46,0.85)" if dark else "rgba(229,229,234,0.88)";
         text1 = "#f5f5f7" if dark else "#1d1d1f";
         text2 = "#86868b";
         text3 = "#48484a" if dark else "#aeaeb2";
@@ -750,15 +751,19 @@ cl {
             "color": text1,
             "WebkitFontSmoothing": "antialiased",
             "display": "flex",
-            "flexDirection": "column"
+            "flexDirection": "column",
+            "position": "relative"
         }}>
+            <CaffeineBackground is_dark={dark} />
             <div style={{
                 "maxWidth": "680px",
                 "width": "100%",
                 "margin": "0 auto",
                 "padding": "0 24px",
                 "boxSizing": "border-box",
-                "flex": "1"
+                "flex": "1",
+                "position": "relative",
+                "zIndex": "1"
             }}>
                 <div style={{
                     "display": "flex",
@@ -949,7 +954,7 @@ cl {
                 </div> if has_results else <span></span>}
             </div>
 
-            <div style={{"padding": "64px 24px 40px"}}>
+            <div style={{"padding": "64px 24px 40px", "position": "relative", "zIndex": "1"}}>
                 <div style={{"maxWidth": "680px", "margin": "0 auto"}}>
                     <div style={{
                         "display": "flex",
