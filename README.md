@@ -15,11 +15,11 @@ R = \sum_{i=1}^{n} s_i \cdot m(t_{i-1}, t_i)
 $$
 
 where
-$$
-    R: \text{chain risk},
-    s_i: \text{weight_severity},
-    m: \text{interaction multiplier}.
-$$
+<ul>
+  <li><b>R</b>: chain risk</li>
+  <li><b>s<sub>i</sub></b>: weight_severity</li>
+  <li><b>m</b>: interaction multiplier</li>
+</ul>
 
 When accumulated risk `R` exceeds the walker’s threshold value, the chain is flagged. For example, take the following triple interaction: Metformin reduces kidney function, Lisinopril adds renal stress, Ibuprofen on top triggers acute kidney injury risk. In this example, all 3 pairwise interactions are mild, but they add up to be deadly. Due to the walkers’ risk count, ChainRx is able to catch this and flag it as dangerous. 
 
